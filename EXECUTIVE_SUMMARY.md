@@ -201,9 +201,9 @@ Guides: [docs/PositionMonitoring.md](docs/PositionMonitoring.md) · [docs/Data.m
 
 ## 9. Training data and the Training Calendar
 
-![Easy 0DTE engineering data lifecycle from market ingestion through replay](docs/images/engineering-data-lifecycle.webp)
+![Easy 0DTE Training Calendar — Trade Profile 10.23 in-sample replay](docs/images/training-calendar.webp)
 
-*How observed broker data becomes decision stamps, Priority Optimizer event snapshots, Profit Optimizer premium time-series, and in-sample replay. Persisted tapes are event-triggered records, not a guarantee of 2-second stored ticks. Step 6 is the research workflow — Pre-trained forward validation is required for Live, not a completed certification (current streak 0/11).*
+*Firebase Training Calendar (September 2026 view). Header is Trade Profile **10.23** in-sample replay: 8/19–11/6 **542 · 436W/106L · +$159,400.39**. September tile **+$73,075.59** (21 green / 0 red). Pre trained streak **0/11**. These figures are not the running Demo ledger. The market-data lifecycle diagram is in the [README](README.md#data-engineering).*
 
 Wide is on so the book keeps producing accepts. Those accepts, the rejects, and the premium path of each open are the corpus for 10.23.
 
