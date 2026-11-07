@@ -31,6 +31,14 @@ The three running paths share one options account, one slot pool, one monitor, a
 
 ORB SO (ETF), the 7:00 validation candle, 7:15 signal collection, and Portfolio Protection / Red Day are off. Discovery mode is `ORB_0DTE_DISCOVERY_MODE=watch`.
 
+![Easy 0DTE ORB1 and ORB2 opening-range breakout](docs/images/orb-strategy.webp)
+
+*ORB1 and ORB2. ORB1 is the 15-minute box (06:30–06:45 PT), discovery 06:45–07:25. ORB2 is the 1-hour box (06:30–07:30 PT), discovery 07:30–12:30 after the freeze. CALL is a break above the range high; PUT is a break below the range low. First print **0.08%** beyond the box goes to the Trade Profile. Shared scan is 24 names / 10s.*
+
+![Easy 0DTE Trendline strategy TL0, TL1, and TL2+](docs/images/trendline-strategy.webp)
+
+*Trendline. TL0 is drawn on the ORB1 box and expires at 07:25. TL1 is built once from the ORB2 box; TL2+ are later hulls on that box through 12:30. CALL breaks a descending cap; PUT breaks an ascending floor. Activation is a close **0.08%** through the line. Yahoo 1-minute bars timestamp A1/A2 only — they are not quotes or fills.*
+
 **Operating posture (7 November 2026):** Cloud Run Demo (`MODE=demo`), admit **Wide**, simulated ledger **$100,000**, **50** slots, **$600** per new open. Live broker submit is off. Trade Profile **10.23** is the in-sample research successor (local **S0_maxnet**): 8/19–11/6 **542 trades · 436W/106L · 80.4% · +$159,400.39** fee-inclusive. Wide stays on so those sessions remain collectable. Serving revision and rollback live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ![Easy 0DTE operating modes: Demo active, 10.23 in-sample research, Live submit off](docs/images/operating-modes-validation.webp)
