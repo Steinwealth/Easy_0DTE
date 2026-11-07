@@ -9,11 +9,9 @@ This file is the product specification. Path geometry, admit structure, order ro
 
 **Contents:** [What this app is](#1-what-this-app-is) · [Session](#3-the-session) · [Discovery](#4-discovery) · [Admit](#5-admit-trade-profile-wide-training-toward-1023) · [Orders](#6-order-execution) · [Risk](#7-risk-and-sizing) · [Monitor](#8-monitoring-and-profit-capture) · [Training](#9-training-data-and-the-training-calendar) · [Desk](#10-alerts-and-the-desk) · [Cloud](#11-cloud)
 
-**Operating posture (7 November 2026):** Cloud Run Demo (`MODE=demo`), admit **Wide**, simulated ledger **$100,000**, **50** slots, **$600** per new open. Live broker submit is off. Trade Profile **10.23** is the in-sample research successor (local **S0_maxnet**): 8/19–11/6 **542 trades · 436W/106L · 80.4% · +$159,400.39** fee-inclusive. Wide stays on so those sessions remain collectable. Serving revision and rollback live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+![Easy 0DTE trading platform workflow from market data through Profit Capture](docs/images/trading-platform-workflow.webp)
 
-![Easy 0DTE operating modes: Demo active, 10.23 in-sample research, Live submit off](docs/images/operating-modes-validation.webp)
-
-*Demo is the running book. Wide is the serving admit. 10.23 is in-sample research. Live broker submission is disabled. Forward certification has not passed.*
+*Application process covered in §1–§8: market data → discovery → Trade Profile qualification → order execution → open book → position monitoring → Profit Capture. Session clocks are US Pacific. Sample quotes, the bid/ask ladder, and the 12/50 open-book P&L in the graphic are illustrative — not Demo ledger or 10.23 research. Serving admit is **Wide**; Live submit is off. The 2s / 3s monitor interval is the scheduler target. Booked settlement is fee-inclusive.*
 
 ---
 
@@ -33,9 +31,11 @@ The three running paths share one options account, one slot pool, one monitor, a
 
 ORB SO (ETF), the 7:00 validation candle, 7:15 signal collection, and Portfolio Protection / Red Day are off. Discovery mode is `ORB_0DTE_DISCOVERY_MODE=watch`.
 
-![Easy 0DTE trading platform workflow from market data through Profit Capture](docs/images/trading-platform-workflow.webp)
+**Operating posture (7 November 2026):** Cloud Run Demo (`MODE=demo`), admit **Wide**, simulated ledger **$100,000**, **50** slots, **$600** per new open. Live broker submit is off. Trade Profile **10.23** is the in-sample research successor (local **S0_maxnet**): 8/19–11/6 **542 trades · 436W/106L · 80.4% · +$159,400.39** fee-inclusive. Wide stays on so those sessions remain collectable. Serving revision and rollback live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-*Application process covered in §1–§8: market data → discovery → Trade Profile qualification → order execution → open book → position monitoring → Profit Capture. Session clocks are US Pacific. Sample quotes, the bid/ask ladder, and the 12/50 open-book P&L in the graphic are illustrative — not Demo ledger or 10.23 research. Serving admit is **Wide**; Live submit is off. The 2s / 3s monitor interval is the scheduler target. Booked settlement is fee-inclusive.*
+![Easy 0DTE operating modes: Demo active, 10.23 in-sample research, Live submit off](docs/images/operating-modes-validation.webp)
+
+*Demo is the running book. Wide is the serving admit. 10.23 is in-sample research. Live broker submission is disabled. Forward certification has not passed.*
 
 ---
 
