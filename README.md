@@ -12,9 +12,9 @@ I designed and built Easy 0DTE as an independent engineering project: session or
 
 [Open the Demo desk →](https://easy-0dte.web.app)
 
-![Easy 0DTE operator desk Training Calendar on Firebase Hosting](docs/images/desk-hero.webp)
+![Easy 0DTE operator desk on Firebase Hosting](docs/images/desk-hero.webp)
 
-*Firebase operator desk at [https://easy-0dte.web.app](https://easy-0dte.web.app). Training Calendar for Trade Profile **10.23** in-sample replay (August 19–November 6, 2026: 542 trades, 436W/106L, +$159,400.39). September tile +$73,075.59. These figures are modeled research, not the running Demo ledger. Serving admit remains **Wide**. Pre trained streak 0/11.*
+*Firebase operator desk at [https://easy-0dte.web.app](https://easy-0dte.web.app) (7 November 2026). Demo mode, $100,000 simulated ledger after reseed, market closed. KPI strip, equity curve, last signal, and Event Tape are the live desk — not Trade Profile 10.23 in-sample research. Serving admit remains **Wide**. Live broker submit is off.*
 
 The dashboard is a read-only Firebase site. Cloud Run writes public snapshot objects; the desk polls them. It does not place orders or invent P&L.
 
