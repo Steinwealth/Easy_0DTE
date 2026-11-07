@@ -39,6 +39,8 @@ ORB SO (ETF), the 7:00 validation candle, 7:15 signal collection, and Portfolio 
 
 *Trendline. TL0 is drawn on the ORB1 box and expires at 07:25. TL1 is built once from the ORB2 box; TL2+ are later hulls on that box through 12:30. CALL breaks a descending cap; PUT breaks an ascending floor. Activation is a close **0.08%** through the line. Yahoo 1-minute bars timestamp A1/A2 only — they are not quotes or fills.*
 
+---
+
 **Operating posture (7 November 2026):** Cloud Run Demo (`MODE=demo`), admit **Wide**, simulated ledger **$100,000**, **50** slots, **$600** per new open. Live broker submit is off. Trade Profile **10.23** is the in-sample research successor (local **S0_maxnet**): 8/19–11/6 **542 trades · 436W/106L · 80.4% · +$159,400.39** fee-inclusive. Wide stays on so those sessions remain collectable. Serving revision and rollback live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ![Easy 0DTE operating modes: Demo active, 10.23 in-sample research, Live submit off](docs/images/operating-modes-validation.webp)
