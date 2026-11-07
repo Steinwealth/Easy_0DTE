@@ -33,6 +33,10 @@ The three running paths share one options account, one slot pool, one monitor, a
 
 ORB SO (ETF), the 7:00 validation candle, 7:15 signal collection, and Portfolio Protection / Red Day are off. Discovery mode is `ORB_0DTE_DISCOVERY_MODE=watch`.
 
+![Easy 0DTE trading platform workflow from market data through Profit Capture](docs/images/trading-platform-workflow.webp)
+
+*Application process covered in §1–§8: market data → discovery → Trade Profile qualification → order execution → open book → position monitoring → Profit Capture. Session clocks are US Pacific. Sample quotes, the bid/ask ladder, and the 12/50 open-book P&L in the graphic are illustrative — not Demo ledger or 10.23 research. Serving admit is **Wide**; Live submit is off. The 2s / 3s monitor interval is the scheduler target. Booked settlement is fee-inclusive.*
+
 ---
 
 ## 2. How to read the rest of the docs
