@@ -1,0 +1,171 @@
+# Docker ignore file for Easy ORB Strategy
+# Exclude unnecessary files from Docker build context to keep build size small
+# Rev 00259: Optimized for Easy ORB Strategy builds (excludes Easy Collector)
+
+# Local gcloud state if present in working tree (must not be in image)
+.gcloud_tmp/
+**/.gcloud_tmp/
+.cursor/
+**/.cursor/
+soundeffects/
+**/soundeffects/
+tmp/
+temp/
+tmp_*/
+**/tmp_*/
+.review_tmp/
+**/.review_tmp/
+.pytest_cache/
+**/.pytest_cache/
+.python-version
+pyproject.toml
+cloudbuild-live.yaml
+data/adv_cache.json
+
+# CRITICAL EXCLUSIONS - Large directories not needed in container
+docs/
+priority_optimizer/
+profit_optimizer/retrieved_data/
+profit_optimizer/retrieve_profit_optimizer.py
+profit_optimizer/tools/
+analytics/
+# Desk Training Calendar only — Dockerfile never COPY training/
+training/
+demo_history/
+# ETradeOAuth — separate service; not copied into ORB trading image
+ETradeOAuth/
+cloudbuild-oauth.yaml
+logs/
+secretsprivate/
+# Include only cleanup scripts for /api/cleanup/images endpoint (Rev 00294)
+scripts/*
+!scripts/cleanup_old_images.sh
+!scripts/cleanup_old_revisions.sh
+
+# Rev 00259: Exclude Easy Collector from Easy ORB Strategy build
+# Easy Collector is a separate service and should not be included in ORB Strategy container
+easyCollector/
+
+# Root Dockerfile pip-installs only ./requirements.txt; omit packaged duplicate
+easy0DTE/requirements.txt
+# Not loaded by app code (sentiment uses complete_sentiment_mapping.json)
+data/watchlist/sentiment_pairs_mapping.json
+
+# Legacy module — example SymbolScore integration; not imported by production paths
+modules/symbol_score_integration.py
+
+# Documentation files
+*.md
+LICENSE
+README.md
+Etrade2025README.md
+DEPLOY_NOW.md
+# Exclude module documentation
+modules/docs/
+modules/*.md
+
+# Log files
+*.log
+
+# Shell scripts (not needed in container) - except cleanup scripts
+*.sh
+!scripts/cleanup_old_images.sh
+!scripts/cleanup_old_revisions.sh
+DEPLOY_COMMANDS.sh
+DEPLOY_NOW.md
+
+# Backup directories
+BACKUP/
+backup/
+*.backup
+*.bak
+*.bak*
+*.bak_*
+**/*.bak_*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Environment files (secrets)
+.env
+*.env
+!configs/*.env
+
+# Data directories - exclude most but keep essential files (Rev 00232)
+# Keep: data/watchlist/, data/holidays_*.json
+# Exclude: data/history/, data/score/, data/easy_collector/, data/trading_logs/
+data/history/
+data/score/
+data/easy_collector/
+data/trading_logs/
+data/mock_trading_history.json
+data/mock_options_history.json
+data/mock_options_history_gcs.json
+data/trendline_mock_history.json
+data/state.json
+data/*.backup.json
+# Exclude JSON files except those we need
+*.json
+!data/holidays_custom.json
+!data/holidays_future_proof.json
+!data/watchlist/*.json
+!easy0DTE/configs/*.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Test files
+test/
+tests/
+*_test.py
+*_tests.py
+test_batch_quotes.py
+test_batch_quotes_sandbox.py
+manage.py
+scripts/manage.py
+
+# Session documentation (already excluded by docs/ above)
+docs/doc_elements/Sessions/
+
+# Exclude example and sample files
+examples/
+samples/
+*.example
+*.sample
+
+# Exclude development tools
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+

@@ -1,0 +1,279 @@
+# Google Cloud Build ignore file for Easy ORB Strategy
+# ======================================================
+# Only essential runtime files for ORB + 0DTE + Trendline + Breakout Cloud Run service.
+# Target: Keep Cloud Build source upload under 11 MiB uncompressed (runtime only).
+# Last Updated: Nov 3, 2026 — runtime only; exclude training/ (Desk) and dated *.bak*.
+#
+# This file controls what gets UPLOADED to Google Cloud Build.
+# CRITICAL (do not exclude): main.py, cloud_run_entry.py, observability.py, Dockerfile,
+# requirements.txt, BUILD_ID.txt, VERSION.txt, modules/, configs/, data/watchlist/*.csv,
+# data/holidays_*.json, easy0DTE/, easyTrendline/, easyBreakout/, profit_optimizer/ (runtime only).
+
+# ============================================
+# LOCAL GCLOUD CONFIGURATION COPIED INTO REPO (never upload)
+# ============================================
+.gcloud_tmp/
+**/.gcloud_tmp/
+# Cursor / local IDE agent state (never upload)
+.cursor/
+**/.cursor/
+# Desk UI audio library — lives in sibling `0. Easy 0DTE Desk UI/soundeffects/`; Cloud Run never plays SFX
+soundeffects/
+**/soundeffects/
+
+# ============================================
+# LOCAL SESSION SCRATCH (never upload — Aug 2026: tmp_aug5_convex was ~21 MiB)
+# ============================================
+tmp/
+temp/
+tmp_*/
+**/tmp_*/
+.review_tmp/
+**/.review_tmp/
+.pytest_cache/
+**/.pytest_cache/
+.cursor_googl_orb0dte_audit.txt
+.python-version
+pyproject.toml
+cloudbuild-live.yaml
+
+# ============================================
+# EXCLUDE EASY COLLECTOR ENTIRELY (separate service)
+# ============================================
+# ORB+0DTE deploy does not use Easy Collector; excluding saves significant size.
+easyCollector/
+
+# ============================================
+# EXCLUDE ALL DOCUMENTATION
+# ============================================
+docs/
+docs/doc_elements/
+*.md
+**/*.md
+README.md
+EXECUTIVE_SUMMARY.md
+LiveModeReadiness.md
+Etrade2025README.md
+DEPLOY_NOW.md
+modules/docs/
+modules/**/docs/
+modules/*.md
+easy0DTE/docs/
+easy0DTE/**/docs/
+easy0DTE/*.md
+easy0DTE/README.md
+easyTrendline/*.md
+easyBreakout/*.md
+
+# ============================================
+# EXCLUDE ALL LARGE / NON-RUNTIME DIRECTORIES
+# ============================================
+historical_intraday_data/
+simulation_results/
+priority_optimizer/
+# Profit optimizer — local GCS retrieve copies (runtime syncs to GCS; not read from disk at startup)
+profit_optimizer/retrieved_data/
+# Profit optimizer — local CLI / offline tools (not imported by Cloud Run runtime)
+profit_optimizer/retrieve_profit_optimizer.py
+profit_optimizer/tools/
+# Local analytics / test PO datasets (research only; not imported at runtime)
+analytics/
+# Desk Training Calendar only — Dockerfile never COPY training/
+training/
+# ETradeOAuth — separate Cloud Run service (see cloudbuild-oauth.yaml)
+ETradeOAuth/
+cloudbuild-oauth.yaml
+logs/
+demo_history/
+data/history/
+data/trading_logs/
+data/easy_collector/
+data/score/
+# Local ADV cache (runtime loads/writes GCS + creates data/adv_cache.json)
+data/adv_cache.json
+secretsprivate/
+easyCollector/secretsprivate/
+# Backup and recovery
+*.BACKUP/
+*BACKUP*/
+*backup*/
+
+# ============================================
+# LEGACY / UNUSED PYTHON (no imports from main app — verified via repo grep)
+# ============================================
+modules/symbol_score_integration.py
+
+# ============================================
+# EXCLUDE ALL DEVELOPMENT FILES
+# ============================================
+# ETradeOAuth — exclude Firebase/venv bulk; keep login/ for OAuth Cloud Run image build
+ETradeOAuth/public/
+ETradeOAuth/node_modules/
+ETradeOAuth/login/functions/
+ETradeOAuth/login/venv/
+ETradeOAuth/modules/
+ETradeOAuth/.firebase/
+ETradeOAuth/deploy.sh
+ETradeOAuth/README.md
+ETradeOAuth/ANTI_PHISHING_ARCHITECTURE.md
+# scripts/ - see DEPLOYMENT section below; cleanup scripts are included
+tests/
+test_*.py
+*_test.py
+**/test_*.py
+**/*_test.py
+# Exclude all test and diagnostic scripts
+check_system_status.py
+verify_system_readiness.py
+test_etrade_keys.py
+update_sandbox_keys.sh
+test_batch_quotes.py
+test_batch_quotes_sandbox.py
+manage.py
+scripts/manage.py
+
+# ============================================
+# EXCLUDE ALL DEPLOYMENT / SCRIPTS
+# Rev 00294: Include cleanup scripts for /api/cleanup/images endpoint
+# ============================================
+scripts/*
+!scripts/cleanup_old_images.sh
+!scripts/cleanup_old_revisions.sh
+!scripts/cloudbuild_image_cleanup.sh
+deploy*.sh
+deploy.sh
+DEPLOY_COMMANDS.sh
+**/deploy*.sh
+
+# ============================================
+# EXCLUDE VERSION CONTROL
+# ============================================
+.git/
+.gitignore
+.gcloudignore
+**/.git/
+**/.gitignore
+**/.gcloudignore
+
+# ============================================
+# EXCLUDE PYTHON CACHE & BYTECODE
+# ============================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+modules/**/__pycache__/
+modules/**/*.pyc
+easy0DTE/**/__pycache__/
+easy0DTE/**/*.pyc
+
+# ============================================
+# EXCLUDE VIRTUAL ENVIRONMENTS
+# ============================================
+venv/
+env/
+ENV/
+.venv/
+
+# ============================================
+# EXCLUDE IDE FILES
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ============================================
+# EXCLUDE OS FILES
+# ============================================
+.DS_Store
+Thumbs.db
+**/.DS_Store
+modules/.DS_Store
+modules/**/.DS_Store
+easy0DTE/.DS_Store
+easy0DTE/**/.DS_Store
+
+# ============================================
+# EXCLUDE TEMPORARY & LOG FILES
+# ============================================
+*.tmp
+*.log
+*.bak
+*.bak*
+*.bak_*
+**/*.bak_*
+*.cache
+**/*.log
+**/*.tmp
+
+# ============================================
+# EXCLUDE NON-ESSENTIAL DATA FILES
+# ============================================
+# Keep: data/watchlist/*.csv (and *.json if used at runtime), data/holidays_*.json
+# Dockerfile does not COPY data/score; exclude entirely.
+data/trading_logs/
+data/state.json
+# Local demo ledgers (Cloud Run reads/writes GCS; not seeded from image)
+data/mock_trading_history.json
+data/mock_options_history.json
+data/mock_options_history_gcs.json
+data/trendline_mock_history.json
+
+# ============================================
+# EXCLUDE BACKUP FILES
+# ============================================
+*.backup
+*_backup.*
+**/*.backup
+**/*_backup.*
+
+# ============================================
+# EXCLUDE BUILD ARTIFACTS
+# ============================================
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ============================================
+# EXCLUDE CONFIG TEMPLATES (KEEP ONLY .env FILES)
+# ============================================
+# Keep all .env files (needed for deployment)
+# Exclude templates and examples
+configs/*.template
+configs/*.example
+configs/README.md
+
+# ============================================
+# EXCLUDE RECOVERY/BACKUP DIRECTORIES
+# ============================================
+recovery/
+_restore_backups/
+999. ORB Recovery Files/
+0. BACKUP/
+1. The Easy 0DTE Strategy/
+.dockerignore.collector
+
+# ============================================
+# EXCLUDE 0DTE STRATEGY NON-ESSENTIAL FILES
+# ============================================
+# Root image uses /app/requirements.txt only; subpackage requirements are for standalone installs.
+easy0DTE/requirements.txt
+# Optional watchlist file — runtime uses complete_sentiment_mapping.json + orb_inverse_mapping.json (see modules/*).
+data/watchlist/sentiment_pairs_mapping.json
+# Keep: easy0DTE/modules/, easy0DTE/configs/, easy0DTE/BUILD_ID.txt, easy0DTE/VERSION.txt
+easy0DTE/.gcloudignore
+easy0DTE/.dockerignore
+easy0DTE/*.md
+easy0DTE/README.md
+easy0DTE/docs/
+easy0DTE/**/docs/

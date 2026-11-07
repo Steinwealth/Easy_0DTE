@@ -1,0 +1,145 @@
+# Google Cloud Build ignore file for 0DTE Strategy
+# AGGRESSIVE: Only essential runtime files included
+# Target: Keep deployment under 2.2 MiB
+
+# ============================================
+# EXCLUDE ALL DOCUMENTATION
+# ============================================
+docs/
+*.md
+README.md
+**/*.md
+!README.md
+**/README.md
+
+# ============================================
+# EXCLUDE ALL LARGE DATA DIRECTORIES
+# ============================================
+historical_intraday_data/
+simulation_results/
+priority_optimizer/
+logs_review_*/
+logs/
+demo_history/
+
+# ============================================
+# EXCLUDE ALL DEVELOPMENT FILES
+# ============================================
+ETradeOAuth/
+scripts/
+tests/
+test_*.py
+*_test.py
+**/test_*.py
+**/*_test.py
+
+# ============================================
+# EXCLUDE ALL DEPLOYMENT SCRIPTS
+# ============================================
+deploy*.sh
+deploy.sh
+**/deploy*.sh
+
+# ============================================
+# EXCLUDE VERSION CONTROL
+# ============================================
+.git/
+.gitignore
+.gcloudignore
+**/.git/
+**/.gitignore
+**/.gcloudignore
+
+# ============================================
+# EXCLUDE PYTHON CACHE & BYTECODE
+# ============================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# ============================================
+# EXCLUDE VIRTUAL ENVIRONMENTS
+# ============================================
+venv/
+env/
+ENV/
+.venv/
+
+# ============================================
+# EXCLUDE IDE FILES
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ============================================
+# EXCLUDE OS FILES
+# ============================================
+.DS_Store
+Thumbs.db
+**/.DS_Store
+
+# ============================================
+# EXCLUDE TEMPORARY & LOG FILES
+# ============================================
+*.tmp
+*.log
+*.bak
+*.cache
+**/*.log
+**/*.tmp
+
+# ============================================
+# EXCLUDE NON-ESSENTIAL DATA FILES
+# ============================================
+data/trading_logs/
+data/score/*.json
+!data/score/symbol_scores.json
+data/score/*_backup.json
+data/score/*_test.json
+data/score/*.py
+data/score/*.md
+data/state.json
+data/mock_trading_history.json
+
+# ============================================
+# EXCLUDE BACKUP FILES
+# ============================================
+*.backup
+*_backup.*
+**/*.backup
+**/*_backup.*
+
+# ============================================
+# EXCLUDE BUILD ARTIFACTS
+# ============================================
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ============================================
+# EXCLUDE MODULE DOCUMENTATION
+# ============================================
+modules/docs/
+**/docs/
+modules/*.md
+**/*.md
+!README.md
+
+# ============================================
+# EXCLUDE CONFIG TEMPLATES (KEEP ONLY .env FILES)
+# ============================================
+configs/*.template
+configs/*.example
+configs/README.md

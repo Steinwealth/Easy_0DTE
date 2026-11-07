@@ -1,0 +1,401 @@
+{
+  "name": "Trade Profile Wide (wide_collect admit as a Trade Profile)",
+  "version": "wide",
+  "status": "2026-10-13 final; loaded by easy0DTE/modules/single_tp_admit.py when SINGLE_TP_ADMIT=true and TRADE_PROFILE_VERSION=wide",
+  "semantics": {
+    "bounds": "inclusive unless min_strict/max_strict",
+    "missing": "profile-driven (same mechanism as 10.5): missing_default=pass; a cell's missing_reject_keys reject when missing; missing_defer_keys hold (data_wait) like the legacy wide dir% defer; zero_is_missing below",
+    "missing_defer": "call_share/put_share missing -> data_wait inside DIR_PCT_DEFER_MAX_WAIT_SEC, then data_unavailable (no cooldown)",
+    "zero_is_missing": [
+      "dir_pct_change_5m",
+      "spy_change_pct"
+    ],
+    "extensions": [
+      "equity_volume_ratio"
+    ],
+    "outside_tp": {
+      "skip_signals": "GATE_call_ss / GATE_put_ss stay a separate hard Must-Execute check",
+      "contract_picker": "premium 0.03-2.50, |delta| 0.18-0.42, OTM <= 0.055 (Breakout 0.035), vol/OI, spread: one shared picker",
+      "geometry": "orb_break/orb_range/regime/tl_break/bo_confirm: signal definition",
+      "capacity": "max open 50, $600 cap, TL slots, cooldowns"
+    },
+    "missing_default": "pass",
+    "missing_reject": "equity_volume_ratio missing rejects (legacy GATE_Vol_Ratio required_session_data_error); break_distance_pct missing passes (legacy break_max skip 'absent')"
+  },
+  "templates": {
+    "CALL": [
+      {
+        "group": "Chain Participation",
+        "keys": [
+          "call_chain_volume",
+          "put_chain_volume",
+          "total_chain_vol_oi",
+          "call_chain_vol_oi",
+          "put_chain_vol_oi",
+          "put_chain_open_interest",
+          "call_chain_open_interest",
+          "call_share",
+          "put_share"
+        ]
+      },
+      {
+        "group": "Option / Market Quality",
+        "keys": [
+          "theta",
+          "chain_sanity_best_same_side_spread_pct",
+          "atr",
+          "vega"
+        ]
+      },
+      {
+        "group": "Trade / Break Structure",
+        "keys": [
+          "price_volume_efficiency_3m",
+          "break_distance_pct",
+          "otm_pct",
+          "iv",
+          "gamma"
+        ]
+      },
+      {
+        "group": "Directional / Market Context",
+        "keys": [
+          "spy_change_pct",
+          "dir_pct_change_5m",
+          "distance_from_vwap_atr",
+          "rsi",
+          "bollinger_position",
+          "bollinger_width"
+        ]
+      },
+      {
+        "group": "Order-Book / Contract Context",
+        "keys": [
+          "underlying_l1_imbalance",
+          "option_l1_imbalance",
+          "delta"
+        ]
+      }
+    ],
+    "PUT": [
+      {
+        "group": "Chain Participation",
+        "keys": [
+          "call_chain_volume",
+          "put_chain_volume",
+          "total_chain_vol_oi",
+          "put_chain_vol_oi",
+          "call_chain_vol_oi",
+          "put_chain_open_interest",
+          "call_chain_open_interest",
+          "put_share",
+          "call_share"
+        ]
+      },
+      {
+        "group": "Option / Market Quality",
+        "keys": [
+          "theta",
+          "atr",
+          "chain_sanity_best_same_side_spread_pct",
+          "vega"
+        ]
+      },
+      {
+        "group": "Trade / Break Structure",
+        "keys": [
+          "price_volume_efficiency_3m",
+          "break_distance_pct",
+          "gamma",
+          "otm_pct",
+          "iv"
+        ]
+      },
+      {
+        "group": "Directional / Market Context",
+        "keys": [
+          "dir_pct_change_5m",
+          "spy_change_pct",
+          "distance_from_vwap_atr",
+          "rsi",
+          "bollinger_position",
+          "bollinger_width"
+        ]
+      },
+      {
+        "group": "Order-Book / Contract Context",
+        "keys": [
+          "option_l1_imbalance",
+          "underlying_l1_imbalance",
+          "delta"
+        ]
+      }
+    ]
+  },
+  "profiles": {
+    "ORB1 CALL": {
+      "lines": [
+        {
+          "key": "call_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "break_distance_pct",
+          "max": 0.025,
+          "doc": "<= 0.025",
+          "src": "old GATE_ORB/BO_break_max hard; QG_BREAK_MAX=2.50 percent"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "call_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "ORB1 PUT": {
+      "lines": [
+        {
+          "key": "put_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "break_distance_pct",
+          "max": 0.025,
+          "doc": "<= 0.025",
+          "src": "old GATE_ORB/BO_break_max hard; QG_BREAK_MAX=2.50 percent"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "put_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "TL0 CALL": {
+      "lines": [
+        {
+          "key": "call_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "call_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "TL0 PUT": {
+      "lines": [
+        {
+          "key": "put_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "put_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "TL1 CALL": {
+      "lines": [
+        {
+          "key": "call_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "call_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "TL1 PUT": {
+      "lines": [
+        {
+          "key": "put_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "put_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "TL2+ CALL": {
+      "lines": [
+        {
+          "key": "call_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "call_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "TL2+ PUT": {
+      "lines": [
+        {
+          "key": "put_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "put_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "Breakout CALL": {
+      "lines": [
+        {
+          "key": "call_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "break_distance_pct",
+          "max": 0.025,
+          "doc": "<= 0.025",
+          "src": "old GATE_ORB/BO_break_max hard; QG_BREAK_MAX=2.50 percent"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "call_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    },
+    "Breakout PUT": {
+      "lines": [
+        {
+          "key": "put_share",
+          "min": 0.1,
+          "min_strict": true,
+          "doc": "> 0.10",
+          "src": "old GATE_*_dir_pct hard (0DTE_DIR_VOLUME_MIN_PCT / TRENDLINE_DIR_VOLUME_PCT / BREAKOUT_DIR_VOLUME_MIN_PCT = 0.10, strict)"
+        },
+        {
+          "key": "break_distance_pct",
+          "max": 0.025,
+          "doc": "<= 0.025",
+          "src": "old GATE_ORB/BO_break_max hard; QG_BREAK_MAX=2.50 percent"
+        },
+        {
+          "key": "equity_volume_ratio",
+          "extension": true,
+          "min": 0.012,
+          "doc": ">= 0.012",
+          "src": "old GATE_*_Vol_Ratio hard (inclusive, as _eval_equity_volume_ratio)"
+        }
+      ],
+      "missing_defer_keys": [
+        "put_share"
+      ],
+      "missing_reject_keys": [
+        "equity_volume_ratio"
+      ]
+    }
+  }
+}

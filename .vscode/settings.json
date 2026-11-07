@@ -1,0 +1,5 @@
+{
+  "python.defaultInterpreterPath": "${env:HOME}/.pyenv/versions/3.12.3/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.extraPaths": ["${workspaceFolder}"]
+}

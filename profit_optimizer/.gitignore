@@ -1,0 +1,8 @@
+# Generated session data — pull from GCS with retrieve_profit_optimizer.py
+retrieved_data/**/*
+!retrieved_data/
+!retrieved_data/daily/
+!retrieved_data/daily/.gitkeep
+
+# Cloud Run runtime mirror (optional local copy)
+analytics/

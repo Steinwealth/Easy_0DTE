@@ -1,0 +1,134 @@
+# Docker ignore file for Easy 0DTE Strategy
+# Excludes files from Docker builds to reduce image size
+# Target: Keep deployment minimal and efficient
+
+# ============================================
+# EXCLUDE ALL DOCUMENTATION
+# ============================================
+docs/
+*.md
+README.md
+**/*.md
+!README.md
+
+# ============================================
+# EXCLUDE VERSION CONTROL
+# ============================================
+.git/
+.gitignore
+.gcloudignore
+.dockerignore
+**/.git/
+**/.gitignore
+**/.gcloudignore
+**/.dockerignore
+
+# ============================================
+# EXCLUDE PYTHON CACHE & BYTECODE
+# ============================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# ============================================
+# EXCLUDE VIRTUAL ENVIRONMENTS
+# ============================================
+venv/
+env/
+ENV/
+.venv/
+
+# ============================================
+# EXCLUDE IDE FILES
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ============================================
+# EXCLUDE OS FILES
+# ============================================
+.DS_Store
+Thumbs.db
+**/.DS_Store
+
+# ============================================
+# EXCLUDE TEMPORARY & LOG FILES
+# ============================================
+*.tmp
+*.log
+*.bak
+*.cache
+**/*.log
+**/*.tmp
+
+# ============================================
+# EXCLUDE TEST FILES
+# ============================================
+tests/
+test_*.py
+*_test.py
+**/test_*.py
+**/*_test.py
+
+# ============================================
+# EXCLUDE DEPLOYMENT SCRIPTS
+# ============================================
+deploy*.sh
+deploy.sh
+**/deploy*.sh
+SETUP*.sh
+
+# ============================================
+# EXCLUDE BUILD ARTIFACTS
+# ============================================
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ============================================
+# EXCLUDE BACKUP FILES
+# ============================================
+*.backup
+*_backup.*
+**/*.backup
+**/*_backup.*
+
+# ============================================
+# EXCLUDE NON-ESSENTIAL DATA FILES
+# ============================================
+# Keep: configs/*.env (needed for deployment)
+# Exclude: templates, examples, backups
+configs/*.template
+configs/*.example
+configs/README.md
+data/trading_logs/
+data/score/*.json
+!data/score/symbol_scores.json
+data/score/*_backup.json
+data/score/*_test.json
+data/score/*.py
+data/score/*.md
+data/state.json
+data/mock_trading_history.json
+
+# ============================================
+# EXCLUDE LARGE DATA DIRECTORIES
+# ============================================
+historical_intraday_data/
+simulation_results/
+priority_optimizer/
+logs_review_*/
+logs/
+demo_history/
