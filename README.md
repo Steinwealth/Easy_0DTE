@@ -1,117 +1,137 @@
-# Easy 0DTE Strategy
+# Easy 0DTE
 
-Cloud-hosted research desk for same-day listed U.S. options.
+A cloud-native research engine that discovers same-day listed U.S. option setups, qualifies them with one Trade Profile, and monitors simulated fills through a live broker data plane.
 
-The service discovers opening-range and trendline breaks, admits or rejects each signal with one Trade Profile, sizes the accept, and watches the open on a two-second monitor. Demo fills a simulated book at the live ask. The same code path can submit Live orders to E\*TRADE. A Firebase desk shows booked performance and the Training Calendar used to tighten the next profile.
+I designed and built Easy 0DTE as an independent engineering project: session orchestration, broker integration, admit logic, risk, monitoring, replay, and the operator desk.
 
-**Status:** Active research. Demo on, Live submit off. Training Calendar figures are **in-sample** 10.23 replay. They are not live trading results.
-
-**Desk:** [https://easy-0dte.web.app](https://easy-0dte.web.app)  
-**Spec:** [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)
-
-![Training Calendar — November 2026 in-sample 10.23 replay](docs/images/training-calendar-november-2026.jpg)
+**Status:** Active research. **Demo is on.** Serving admit is **Trade Profile Wide**. **Live broker execution is disabled.** Training Calendar figures are in-sample 10.23 replay, not Demo ledger results and not live investment returns.
 
 ---
 
-## What you are looking at
+## Application preview
 
-Easy 0DTE is one Python service on Cloud Run plus a static operator desk.
+[Open the Demo desk →](https://easy-0dte.web.app)
 
-| Layer | Role |
-|-------|------|
-| Session engine | Calendar gate → capture → three discovery paths → admit → size → fill → monitor → flatten |
-| Broker / data | Live E\*TRADE quotes and option chains. Yahoo 1-minute bars timestamp Trendline structure only |
-| Training | Time-correct snapshots and premium-path tapes. Replay compares the profile before vs after each day’s bound work |
-| Desk | Mirrors the Demo ledger. Does not place orders or invent P&L |
+![Easy 0DTE operator desk on Firebase Hosting](docs/images/desk-hero.webp)
 
-Broker credentials, project IDs, and account numbers are not in this README.
+*Firebase operator desk at [https://easy-0dte.web.app](https://easy-0dte.web.app) (24 October 2026). KPI strip, equity curve, last signal, and Event Tape mirror the **running Demo ledger** under Trade Profile **Wide**. That booked P&L is not the 10.23 in-sample research result below. The Demo book was later reseeded to $100,000.*
+
+The dashboard is a read-only Firebase site. Cloud Run writes public snapshot objects; the desk polls them. It does not place orders or invent P&L.
 
 ---
 
-## Training Calendar (7 November 2026)
+## What I built
 
-Trade Profile **10.23** in-sample replay, **19 August → 6 November 2026**. Settlement is fee-inclusive:
+- **Cloud-native Python trading research engine** on Cloud Run that runs the cash session from calendar gate through flatten.
+- **E\*TRADE market-data and broker integration** for live equity quotes, option chains, and exact OCC contract bids. Live order submit stays off.
+- **ORB1, ORB2, and Trendline discovery** on one shared 24-name / 10-second scan, with Yahoo 1-minute bars used only to timestamp Trendline structure.
+- **Single Trade Profile qualification** — one decision stamp, one digest, one admit path (serving **Wide**).
+- **Simulated execution and risk controls** — Demo fills at the live ask; 50 slots; $600 new-open sum; $100,000 simulated ledger.
+- **Shared position monitoring and Profit Capture** — one monitor, exact OCC bids, PATH_V2 exits, fee-inclusive settlement.
+- **Feature snapshots and premium time-series collection** for later profile replay (Priority Optimizer + Profit Optimizer).
+- **Historical replay and optimization** that scores a candidate profile against Wide-collected sessions without changing the serving admit.
+- **Firebase operator dashboard and Telegram notifications** for fills, exits, and the end-of-day report.
 
-`(exit − entry) × contracts × 100 − contracts × $1.30`
-
-| Window | Trading days | Green / red | Trades | Net |
-|--------|--------------|-------------|--------|-----|
-| Full sample | — | — | **542 · 436W/106L** | **+$159,400.39** |
-| September 2026 | 21 | 21 / 0 | 213 · 160W/53L | +$73,075.59 |
-| October 2026 | 21 | 20 / 1 | 181 · 156W/25L | +$44,030.50 |
-| November 2026 (through 6 Nov) | 5 | 5 / 0 | 44 · 36W/8L | +$9,251.50 |
-
-October’s red day is **9 October −$567.10**. Cloud Run still **admits Wide** so those sessions stay collectable. **10.23** is the research successor on disk; it is not the live admit. Live certification is **60 profitable Pre trained sessions**. The Pre trained streak on this date is **0/11**.
-
-![Training Calendar — October 2026](docs/images/training-calendar-october-2026.jpg)
+Specification: [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md).
 
 ---
 
-## How a session runs
+## Cloud deployment architecture
 
-Clocks are US Pacific. Cash open is 06:30 PT (09:30 ET). Flatten is 12:50 PT.
+![Easy 0DTE cloud deployment and operations architecture](docs/images/cloud-deployment-architecture.webp)
 
-1. Skip a closed, low-volume, or pre-holiday session.
-2. Capture the 06:30–06:45 opening range and draw Trendline TL0.
-3. Scan **ORB1** and **TL0** together until **07:25**.
-4. Arm TL1, freeze the 07:30 range, unlock **ORB2**, build TL1 once, then scan Trendline and ORB2 until **12:30**.
-5. Send each break through Must Execute, then Trade Profile **Wide**.
-6. Size the accept ($600 sum cap, 50 slots) and buy that strike.
-7. Watch every open on a **2-second** monitor (**3 seconds** at 20 or more opens) and exit with Profit Capture PATH_V2.
-8. Flatten leftovers at **12:50** and send one end-of-day report at **12:55**.
+*Deployed Demo topology: Python on Cloud Run, Cloud Scheduler session jobs, Secret Manager, a separate OAuth renewal service, GCS persistence, Firebase Hosting (read-only desk), E\*TRADE market data, Yahoo 1-minute Trendline timestamps, and Telegram alerts. Live broker submit is off. Serving revision lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).*
 
-Discovery is the next **24** names every **10 seconds**. The scan yields so the exit monitor can run.
-
----
-
-## The three paths
-
-All three trade long CALLs and long PUTs on one options account.
-
-| Path | What breaks | When it can enter |
-|------|-------------|-------------------|
-| **ORB1** | The 06:30–06:45 high or low | 06:45 until 07:25 |
-| **Trendline** | TL0 on that morning box, then TL1–TL6 on the 07:30 box | TL0 until 07:25. Later lines after ORB#2, through 12:30 |
-| **ORB2** | The 07:30 high or low | As soon as ORB#2 is frozen, through 12:30 |
-
-Must Execute checks that the trade is possible. Wide then accepts or rejects the stamped row. A reject does not write an entry snapshot.
+| Component | Role |
+|-----------|------|
+| **Cloud Run** | Session engine (`easy-etrade-strategy`, `MODE=demo`) plus a separate OAuth token-renewal service |
+| **Cloud Scheduler** | Keep-alives, morning alert, and end-of-day. Validation jobs stay paused |
+| **Cloud Storage** | Ledgers, markers, optimizer objects, and `desk_public/` snapshots |
+| **Secret Manager** | OAuth and alert secrets — not in source |
+| **Firebase Hosting** | Read-only operator desk at [easy-0dte.web.app](https://easy-0dte.web.app) |
+| **E\*TRADE** | Live quotes, chains, and exact OCC bids. Demo does not submit broker orders |
+| **Yahoo 1-minute structure data** | Trendline timestamps only — never used as a quote or fill |
+| **Telegram** | Session, fill, exit, and EOD alerts (notification-only queue) |
 
 ---
 
-## Demo and Live
+## Engineering challenges and solutions
 
-| | Demo (running) | Live (same code, submit on) |
-|--|----------------|-----------------------------|
-| Quotes and chains | Live E\*TRADE | Same |
-| Orders | Simulated fill at the ask | Broker limit at that ask, then one lift of $0.05–$0.15 |
-| Cash | $100,000 simulated ledger | The E\*TRADE 0DTE account |
-| Trade ids | `D-…` | `L-…` |
+**Asynchronous session orchestration.** Capture, three discovery lanes, chain reads, monitoring, and desk writes share one event loop. Discovery yields to the exit monitor (up to 0.8s before the quote batch, 0.5s after) so a slow chain call does not skip a break check, and a slow exit quote does not skip discovery.
 
-Headline percent is settlement dollars divided by premium plus the opening fee. A flat bid is a fee loss.
+**Three paths, one account.** ORB1, Trendline, and ORB2 compete for the same 50 slots, $600 sum cap, and unified monitor. Book-full is checked before any chain call. A running watch must not occupy the scan slot.
 
-While a trade is open the monitor quotes the **exact OCC contract** and marks the exit on the **bid**. A missing or non-finite bid is a hold. Underlying age on that check is cache-only (usable to 4s, last-good to 8s). Those clocks are not stretched to hide a slow book.
+**Decision-time snapshot integrity.** The profile must not see a restamped quote. `decision_stamp` freezes the keys; `decision_digest` hashes that dict; a mismatch rejects `data_unavailable:stamp_parity`.
+
+**Quote freshness and exact OCC identity.** Exits mark the **bid** of the **exact** listed contract, not a mid or a symbol-level proxy. Underlying last is cache-only on evaluate (usable ≤4s, last-good ≤8s). Those TTLs are not raised to hide a wide book.
+
+**Monitoring under broker latency.** The scheduler **target** is 2s (3s at ≥20 opens). Sequential OCC batches of 25 yield to the equity refresh between waves. Saved JSONL gaps are a different clock (persist minimum 5s). Recorded-tape evidence: [docs/PositionMonitoring.md](docs/PositionMonitoring.md#recorded-tape-quality-819116).
+
+**Replay provenance.** Historical tapes include reconstructed grids and end-of-tape HOLD rows. 10.23 results are labeled **modeled / in-sample**. Reconstructed rows are not treated as 2-second broker ticks, and exits are not retuned from them.
+
+**Deployment safety.** Demo deploys require an explicit `DEPLOY_NOW=YES`. The script refuses the Live service and refuses a ledger reseed. An empty liveness probe avoids killing a busy event loop. Cash-session deploys are not the default.
+
+**Simulated execution vs live submit.** `MODE=demo` fills `MockOptionsExecutor` at the live ask (`D-…` ids). Live would submit a limit on the same pick (`L-…` ids). That submit path is off.
 
 ---
 
-## Repository map
+## Operating modes and research validation
 
-| You want | Open |
-|----------|------|
-| Product spec | [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md) |
-| Component map | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Session order | [docs/ProcessFlow.md](docs/ProcessFlow.md) |
-| Paths | [ORB1](docs/0DTEORB1Breakout.md) · [Trendline](docs/0DTETrendline.md) · [ORB2](docs/0DTEORB2Breakout.md) |
-| Admit (Wide and 10.23) | [docs/0.TradeProfiles.md](docs/0.TradeProfiles.md) |
-| Orders, risk, monitor, exits | [Order execution](docs/0.OrderExecution.md) · [Risk](docs/0DTERisk.md) · [Monitoring](docs/PositionMonitoring.md) · [Profit Capture](docs/0DTEProfitCapture.md) |
-| Desk | [docs/Frontend.md](docs/Frontend.md) |
-| Doc index | [docs/README.md](docs/README.md) |
+![Easy 0DTE operating modes: Demo active, 10.23 in-sample research, Live submit off](docs/images/operating-modes-validation.webp)
 
-| Area | Path |
-|------|------|
-| Session loop | `modules/prime_trading_system.py` |
-| Admit | `easy0DTE/modules/single_tp_admit.py` |
-| Profiles | `easy0DTE/configs/trade_profile_wide.json`, `trade_profile_10.23.json` |
-| Monitor and exits | `Unified0DTEPositionMonitor`, `modules/path_v2_exit.py` |
-| Settlement | `modules/options_trade_economics.py` |
+*Current boundaries. Demo is the running book (live quotes, simulated fills, admit **Wide**). Trade Profile 10.23 is in-sample research on Wide-collected sessions — not the serving admit. Live broker submission is disabled. Forward certification has not passed.*
 
-Python **3.12.3**. Local Demo needs `requirements.txt` and E\*TRADE OAuth from the env template — credentials stay out of git. Deploy and cloud operations: [docs/Deploy.md](docs/Deploy.md) · [docs/Cloud.md](docs/Cloud.md).
+Latest verified **Trade Profile 10.23** replay (August 19–November 6, 2026):
+
+| | |
+|--|--|
+| Trades | **542** |
+| Wins / losses | **436 / 106** |
+| Win rate | **80.4%** |
+| Fee-inclusive modeled net P&L | **+$159,400.39** |
+
+These figures are **historical in-sample replay** on **Wide-collected** sessions. They are **not** the running Demo ledger and **not** live investment returns.
+
+**Wide remains the serving admit** so those sessions stay collectable. Forward validation has not passed. Live certification requires **60 profitable Pre trained sessions**. Current Pre trained streak: **0/11**.
+
+Settlement is fee-inclusive: `(exit − entry) × contracts × 100 − contracts × $1.30`. Methodology: [docs/TradeProfile.md](docs/TradeProfile.md). Data lifecycle: [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md#9-training-data-and-the-training-calendar).
+
+---
+
+## Technology stack
+
+| Layer | Stack |
+|-------|--------|
+| Language | **Python 3.11** in the Docker image (`python:3.11-slim`). Local development is **Python 3.12.3**. The Cloud Run runtime is 3.11 |
+| Runtime | `asyncio`, FastAPI health endpoints |
+| Data | pandas, numpy, python-dateutil |
+| Broker / market data | E\*TRADE REST (OAuth), yfinance (1-minute Trendline timestamps) |
+| Cloud | Cloud Run, Cloud Scheduler, Cloud Storage, Secret Manager, Cloud Logging |
+| Desk | Firebase Hosting (static), GCS `desk_public/` |
+| Alerts | Telegram Bot API |
+
+---
+
+## Explore the project
+
+| | |
+|--|--|
+| Live Demo dashboard | [https://easy-0dte.web.app](https://easy-0dte.web.app) |
+| Executive Summary (spec) | [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md) |
+| Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Session workflow | [docs/ProcessFlow.md](docs/ProcessFlow.md) |
+| Trade Profile overview | [docs/TradeProfile.md](docs/TradeProfile.md) |
+| ORB1 / Trendline / ORB2 | [docs/0DTEORB1Breakout.md](docs/0DTEORB1Breakout.md) · [docs/0DTETrendline.md](docs/0DTETrendline.md) · [docs/0DTEORB2Breakout.md](docs/0DTEORB2Breakout.md) |
+| Monitoring and exits | [docs/PositionMonitoring.md](docs/PositionMonitoring.md) · [docs/0DTEProfitCapture.md](docs/0DTEProfitCapture.md) |
+| Orders, risk, data | [docs/0.OrderExecution.md](docs/0.OrderExecution.md) · [docs/0DTERisk.md](docs/0DTERisk.md) · [docs/Data.md](docs/Data.md) |
+| Desk, deploy, cloud | [docs/Frontend.md](docs/Frontend.md) · [docs/Deploy.md](docs/Deploy.md) · [docs/Cloud.md](docs/Cloud.md) |
+
+---
+
+## Security and operational status
+
+Broker credentials, OAuth tokens, and Telegram secrets live in **Secret Manager**, not in this repository. Account numbers and GCP project IDs are not documented here.
+
+The public application is **Demo-only**: live quotes and chains, simulated fills, Live submit off. Serving revision is tracked in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), not as a hardcoded hash in this README.
+
+This repository is an engineering and research snapshot. It is not an offer to trade, solicit, or manage capital.

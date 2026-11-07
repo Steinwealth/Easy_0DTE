@@ -3,19 +3,21 @@
 **Last updated:** November 7, 2026  
 **Product:** Easy 0DTE — cloud research desk for same-day listed U.S. options  
 **Desk:** [https://easy-0dte.web.app](https://easy-0dte.web.app)  
-**Public tour:** [README.md](README.md) · **Index:** [docs/README.md](docs/README.md)
+**Public tour:** [README.md](README.md)
 
-This file is the product specification. Path geometry, admit bounds, order routing, monitor cadence, and the exit catalog stay in the go-to guides named in §2. Broker credentials, GCP project IDs, and account numbers are not documented here.
+This file is the product specification. Path geometry, admit structure, order routing, monitor cadence, and the exit catalog stay in the guides in §2. Broker credentials, GCP project IDs, and account numbers are not documented here.
 
-**Operating posture (7 November 2026):** Cloud Run Demo (`MODE=demo`), admit **Wide**, simulated ledger **$100,000**, **50** slots, **$600** per new open. Live broker submit is off. [Trade Profile 10.23](docs/0.TradeProfiles.md) is the in-sample research successor (local **S0_maxnet**): 8/19–11/6 **542 trades · 436W/106L · +$159,400.39** fee-inclusive. Wide stays on so those sessions remain collectable. Serving revision and rollback live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+**Contents:** [What this app is](#1-what-this-app-is) · [Session](#3-the-session) · [Discovery](#4-discovery) · [Admit](#5-admit-trade-profile-wide-training-toward-1023) · [Orders](#6-order-execution) · [Risk](#7-risk-and-sizing) · [Monitor](#8-monitoring-and-profit-capture) · [Training](#9-training-data-and-the-training-calendar) · [Desk](#10-alerts-and-the-desk) · [Cloud](#11-cloud)
+
+**Operating posture (7 November 2026):** Cloud Run Demo (`MODE=demo`), admit **Wide**, simulated ledger **$100,000**, **50** slots, **$600** per new open. Live broker submit is off. Trade Profile **10.23** is the in-sample research successor (local **S0_maxnet**): 8/19–11/6 **542 trades · 436W/106L · 80.4% · +$159,400.39** fee-inclusive. Wide stays on so those sessions remain collectable. Serving revision and rollback live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
 ## 1. What this app is
 
-The Easy 0DTE Strategy is one Cloud Run service that trades same-day listed options from the US cash open through the flatten. It discovers CALL and PUT signals on three paths, accepts or rejects each signal with one Trade Profile, sizes the accept, and opens it on a simulated ledger in Demo or on the E\*TRADE account in Live. Open positions are watched on one monitor so Profit Capture can exit them. The market calendar decides which sessions stay off.
+One Cloud Run service trades same-day listed options from the US cash open through flatten. It discovers CALL and PUT signals on three paths, accepts or rejects each signal with one Trade Profile, sizes the accept, and opens it on a simulated ledger in Demo (or on the E\*TRADE account in Live). Open positions are watched on one monitor so Profit Capture can exit them. The market calendar decides which sessions stay off.
 
-Demo is the running book. It uses live E\*TRADE quotes and chains and fills `MockOptionsExecutor` at the ask. Live uses the same pick and submits that strike to E\*TRADE. `MODE` is the switch.
+Demo is the running book. It uses live E\*TRADE quotes and chains and fills `MockOptionsExecutor` at the ask. Live uses the same pick and submits that strike to E\*TRADE. `MODE` is the switch. Live submit is off.
 
 The three running paths share one options account, one slot pool, one monitor, and one end-of-day report:
 
@@ -34,22 +36,22 @@ ORB SO (ETF), the 7:00 validation candle, 7:15 signal collection, and Portfolio 
 | Question | Document |
 |----------|----------|
 | GitHub tour | [README.md](README.md) |
-| Doc index | [docs/README.md](docs/README.md) |
 | Modules, data plane, deploy shape | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | The session, in order | [docs/ProcessFlow.md](docs/ProcessFlow.md) |
-| Cloud Run, scheduler | [docs/Cloud.md](docs/Cloud.md) · [docs/Deploy.md](docs/Deploy.md) |
+| Cloud Run, scheduler, deploy | [docs/Cloud.md](docs/Cloud.md) · [docs/Deploy.md](docs/Deploy.md) |
 | Quotes, chains, freshness | [docs/Data.md](docs/Data.md) |
-| Broker axis | [docs/brokers/Brokers.md](docs/brokers/Brokers.md) |
-| Accept / reject, Wide, 10.23 | [docs/0.TradeProfiles.md](docs/0.TradeProfiles.md) |
+| Accept / reject, 27-key templates, Wide vs 10.23 | [docs/TradeProfile.md](docs/TradeProfile.md) |
 | Strike to fill | [docs/0.OrderExecution.md](docs/0.OrderExecution.md) |
 | Slots, $600, cooldowns, calendar gate | [docs/0DTERisk.md](docs/0DTERisk.md) |
-| Open-book watch and cadence | [docs/PositionMonitoring.md](docs/PositionMonitoring.md) |
+| Open-book watch and recorded-tape audit | [docs/PositionMonitoring.md](docs/PositionMonitoring.md) |
 | Exit catalog | [docs/0DTEProfitCapture.md](docs/0DTEProfitCapture.md) |
 | Holidays and skip days | [docs/MarketCalendar.md](docs/MarketCalendar.md) |
 | Telegram | [docs/Alerts.md](docs/Alerts.md) |
 | Desk UI and Training Calendar | [docs/Frontend.md](docs/Frontend.md) |
 | Env catalog | [docs/Configs.md](docs/Configs.md) |
 | Training rows | [docs/PriorityOptimizer.md](docs/PriorityOptimizer.md) |
+
+Per-cell threshold bounds are not published. The public Trade Profile overview is [docs/TradeProfile.md](docs/TradeProfile.md).
 
 ---
 
@@ -103,9 +105,29 @@ Every discovered signal takes one admit path. There is no second quality stack o
 4. **Accept or reject.** `tp_admit:<cell>` or `tp_reject:<key>:<min|max|missing|not_and>`.
 5. **Size.** The $600 sum cap and the 50-slot book run after the accept.
 
-Wide is the collection profile. The working research profile is **10.23** (`easy0DTE/configs/trade_profile_10.23.json`, current local **S0_maxnet**). Bounds, cells, and the 8/19–session replay live in [docs/0.TradeProfiles.md](docs/0.TradeProfiles.md). `TRADE_PROFILE_VERSION` stays `wide` until an explicit admit deploy selects 10.23.
+Wide is the collection profile. The working research profile is **10.23** (`easy0DTE/configs/trade_profile_10.23.json`, current local **S0_maxnet**). Public structure, methodology, and labeled outcomes: [docs/TradeProfile.md](docs/TradeProfile.md). Per-cell bounds are not published. `TRADE_PROFILE_VERSION` stays `wide` until an explicit admit deploy selects 10.23.
 
 Wide rules, in short: same-side `call_share` or `put_share` above 0.10; `break_distance_pct` at most 0.025 on ORB1 and ORB2; `equity_volume_ratio` at least **0.012** on every path. A missing key passes, except `equity_volume_ratio` (reject) and the share key (defer). `TRENDLINE_MAX_ENTRY_DISTANCE_PCT` at 5% is a score bonus only.
+
+### 27-key CALL and PUT templates
+
+10.23 is a flat **10 cells × 27 keys** profile (`flat-27-key-cells-v2`): ORB1, TL0, TL1, TL2+, Breakout (ORB2) × CALL, PUT. Each cell uses this official template order (approved 17 October 2026). A key is a min, a max, a min–max range, or **PASS**. Listing a key does not activate a bound. `call_share` / `put_share` are derived from stamped chain volumes. PUT `delta` is `abs(delta)`. `dir_pct_change_5m` stays on the template and is not a 10.23 gate.
+
+**CALL**
+
+1. `call_chain_volume` · 2. `put_chain_volume` · 3. `total_chain_vol_oi` · 4. `call_chain_vol_oi` · 5. `put_chain_vol_oi` · 6. `put_chain_open_interest` · 7. `call_chain_open_interest` · 8. `call_share` · 9. `put_share` *(Chain Participation)*
+10. `theta` · 11. `chain_sanity_best_same_side_spread_pct` · 12. `atr` · 13. `vega` *(Option / Market Quality)*
+14. `price_volume_efficiency_3m` · 15. `break_distance_pct` · 16. `otm_pct` · 17. `iv` · 18. `gamma` *(Trade / Break Structure)*
+19. `spy_change_pct` · 20. `dir_pct_change_5m` · 21. `distance_from_vwap_atr` · 22. `rsi` · 23. `bollinger_position` · 24. `bollinger_width` *(Directional / Market Context)*
+25. `underlying_l1_imbalance` · 26. `option_l1_imbalance` · 27. `delta` *(Order-Book / Contract Context)*
+
+**PUT** (same 27 names; order inside the groups differs)
+
+1. `call_chain_volume` · 2. `put_chain_volume` · 3. `total_chain_vol_oi` · 4. `put_chain_vol_oi` · 5. `call_chain_vol_oi` · 6. `put_chain_open_interest` · 7. `call_chain_open_interest` · 8. `put_share` · 9. `call_share` *(Chain Participation)*
+10. `theta` · 11. `atr` · 12. `chain_sanity_best_same_side_spread_pct` · 13. `vega` *(Option / Market Quality)*
+14. `price_volume_efficiency_3m` · 15. `break_distance_pct` · 16. `gamma` · 17. `otm_pct` · 18. `iv` *(Trade / Break Structure)*
+19. `dir_pct_change_5m` · 20. `spy_change_pct` · 21. `distance_from_vwap_atr` · 22. `rsi` · 23. `bollinger_position` · 24. `bollinger_width` *(Directional / Market Context)*
+25. `option_l1_imbalance` · 26. `underlying_l1_imbalance` · 27. `delta` *(Order-Book / Contract Context)*
 
 Call SS and Put SS stay outside the profile and are hard. A missing share or dir% input holds the break for up to **90s**, then retires it with no cooldown. The pick uses the live chain already in memory. Spread percents are 8 (ORB1), 30 (ORB2), and 30 (Trendline), or an ask−bid of at most $0.01. Premium band **$0.03–$2.50**.
 
@@ -151,7 +173,7 @@ Contracts are `floor(600 / (premium × 100))`, minimum 1. Book-full is checked b
 
 ## 8. Monitoring and Profit Capture
 
-`Unified0DTEPositionMonitor._monitor_loop` is the only open-book scheduler. The interval is **2s**, and **3s** when 20 or more positions are open. Every open name is exit-checked on that tick. Fill enroll flags the next tick; it does not run a second full-book pass.
+`Unified0DTEPositionMonitor._monitor_loop` is the only open-book scheduler. The interval is **2s**, and **3s** when 20 or more positions are open. That interval is the **scheduler target**, not a claim that saved JSONL rows are 2-second broker ticks. Every open name is exit-checked on that tick. Fill enroll flags the next tick; it does not run a second full-book pass.
 
 Quotes are exact OCC, bid for the sell-to-close mark. PATH_V2 pret is this tick’s option bid / entry − 1 (`live_path_v2_pret_from_tick`). Missing, ≤0, NaN, or ±infinity bid → STEP 0 HOLD. Mark and `pnl_pct` are never pret.
 
@@ -165,11 +187,19 @@ Fees are $0.65 per contract to open and $0.65 per contract to close. Headline pe
 
 Telegram exit alerts are a notification-only queue (`ledger_alert_flush.py`: FIFO 32, 3 attempts, 8s). A drop does not rewrite ledger, fills, or GCS.
 
-At 12:50 PT the app flattens whatever is still open, primes session tech on the remaining names once, then writes the unified EOD. Guides: [docs/PositionMonitoring.md](docs/PositionMonitoring.md) · [docs/Data.md](docs/Data.md) · [docs/0DTEProfitCapture.md](docs/0DTEProfitCapture.md).
+At 12:50 PT the app flattens whatever is still open, primes session tech on the remaining names once, then writes the unified EOD.
+
+Saved JSONL gaps are a different clock from the 2s/3s target (persist min 5s, sequential OCC, load). The 8/19–11/6 recorded-tape audit — reconstructed grids, PATH_END HOLD, observed saved cadence, bid coverage — lives in [docs/PositionMonitoring.md — Recorded-tape quality](docs/PositionMonitoring.md#recorded-tape-quality-819116). Keep S0 frozen and labeled modeled. Do not retune exits from reconstructed tapes.
+
+Guides: [docs/PositionMonitoring.md](docs/PositionMonitoring.md) · [docs/Data.md](docs/Data.md) · [docs/0DTEProfitCapture.md](docs/0DTEProfitCapture.md).
 
 ---
 
 ## 9. Training data and the Training Calendar
+
+![Easy 0DTE engineering data lifecycle from market ingestion through replay](docs/images/engineering-data-lifecycle.webp)
+
+*How observed broker data becomes decision stamps, Priority Optimizer event snapshots, Profit Optimizer premium time-series, and in-sample replay. Persisted tapes are event-triggered records, not a guarantee of 2-second stored ticks. Step 6 is the research workflow — Pre-trained forward validation is required for Live, not a completed certification (current streak 0/11).*
 
 Wide is on so the book keeps producing accepts. Those accepts, the rejects, and the premium path of each open are the corpus for 10.23.
 
@@ -179,9 +209,9 @@ Profit Optimizer records the premium path (compact JSONL, 5s min gap). New rows 
 
 The desk **Training Calendar** posts that research: in-sample 10.23 P&L by day, and a Pre trained / Post trained log for each session’s bound work. It does not change the live admit.
 
-**As of 7 November 2026** (desk tiles; fee-inclusive Post / current book): 8/19–11/6 **542 · 436W/106L · +$159,400.39**. September **+$73,075.59** (21d, 21 green). October **+$44,030.50** (21d, 20 green / 1 red — 9 Oct −$567.10). November through 11/6 **+$9,251.50** (5d, 5 green, 44 · 36W/8L). Pre trained streak **0/11**. Live certification is **60 profitable Pre trained sessions**. These replay results are in-sample.
+**As of 7 November 2026** (desk tiles; fee-inclusive Post / current book): 8/19–11/6 **542 · 436W/106L · 80.4% · +$159,400.39**. September **+$73,075.59** (21d, 21 green). October **+$44,030.50** (21d, 20 green / 1 red — 9 Oct −$567.10). November through 11/6 **+$9,251.50** (5d, 5 green, 44 · 36W/8L). Pre trained streak **0/11**. Live certification is **60 profitable Pre trained sessions**. These replay results are in-sample on Wide-collected sessions. They are not the running Demo ledger and not live investment returns.
 
-Guides: [docs/PriorityOptimizer.md](docs/PriorityOptimizer.md) · [docs/Frontend.md](docs/Frontend.md) · [training/README.md](training/README.md).
+Guides: [docs/PriorityOptimizer.md](docs/PriorityOptimizer.md) · [docs/Frontend.md](docs/Frontend.md).
 
 ---
 
@@ -205,6 +235,8 @@ The desk is a static Firebase site, [https://easy-0dte.web.app](https://easy-0dt
 | Firebase Hosting | Desk UI (`easy-0dte`) and the OAuth web app |
 
 `/health` is a cheap keepalive. Deploys pass an empty liveness probe so a busy event loop is not killed for a slow HTTP check. Startup remains TCP on port 8080.
+
+The Docker image is **Python 3.11** (`python:3.11-slim`). Local development is **Python 3.12.3**. The Cloud Run runtime is 3.11.
 
 Deploy only when asked, with `DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh`. That script merges env, refuses the Live service, and refuses a ledger reseed. Do not deploy during the cash session unless the request is an explicit emergency. The Live sibling `easy-etrade-strategy-live` is not the work target.
 
