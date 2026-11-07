@@ -75,6 +75,14 @@ Specification: [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md).
 
 ---
 
+## Data engineering
+
+![Easy 0DTE engineering data lifecycle from market ingestion through replay](docs/images/engineering-data-lifecycle.webp)
+
+*Observed E\*TRADE quotes and Yahoo 1-minute Trendline timestamps become a decision stamp, Priority Optimizer event snapshots, Profit Optimizer premium time-series, and in-sample replay. Persisted tapes are event-triggered records, not a guarantee of 2-second stored ticks. Forward certification is a required stage, not a completed result (Pre trained 0/11).*
+
+---
+
 ## Operating modes and research validation
 
 ![Easy 0DTE operating modes: Demo active, 10.23 in-sample research, Live submit off](docs/images/operating-modes-validation.webp)

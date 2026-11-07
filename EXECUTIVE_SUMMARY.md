@@ -11,6 +11,10 @@ This file is the product specification. Path geometry, admit structure, order ro
 
 **Operating posture (7 November 2026):** Cloud Run Demo (`MODE=demo`), admit **Wide**, simulated ledger **$100,000**, **50** slots, **$600** per new open. Live broker submit is off. Trade Profile **10.23** is the in-sample research successor (local **S0_maxnet**): 8/19–11/6 **542 trades · 436W/106L · 80.4% · +$159,400.39** fee-inclusive. Wide stays on so those sessions remain collectable. Serving revision and rollback live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+![Easy 0DTE operating modes: Demo active, 10.23 in-sample research, Live submit off](docs/images/operating-modes-validation.webp)
+
+*Demo is the running book. Wide is the serving admit. 10.23 is in-sample research. Live broker submission is disabled. Forward certification has not passed.*
+
 ---
 
 ## 1. What this app is
@@ -221,9 +225,17 @@ Telegram is the pager: morning or holiday, ORB1 and ORB2 capture, path-labeled f
 
 The desk is a static Firebase site, [https://easy-0dte.web.app](https://easy-0dte.web.app). Cloud Run writes `research_app/desk_public/` (`snapshot.json`, `head.json`, `actions.json`, `discovery.json`). The desk polls those objects. It does not invent fills or P&L. Bid MFE% is the PATH_V2 bid peak; Mark MFE% is mark HWM. Source lives in the sibling `0. Easy 0DTE Desk UI` folder, not in this service image.
 
+![Easy 0DTE operator desk on Firebase Hosting](docs/images/desk-hero.webp)
+
+*Live Firebase desk (7 November 2026): Demo, $100,000 reseeded ledger, market closed. KPI strip and Event Tape are booked Demo state, not 10.23 in-sample research.*
+
 ---
 
 ## 11. Cloud
+
+![Easy 0DTE cloud deployment and operations architecture](docs/images/cloud-deployment-architecture.webp)
+
+*Cloud Run session engine and OAuth renewal, Cloud Scheduler, Secret Manager, GCS, Firebase Hosting, E\*TRADE, Yahoo 1-minute Trendline timestamps, Telegram. Live broker submit is off.*
 
 | Piece | Role |
 |-------|------|
