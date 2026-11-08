@@ -295,7 +295,7 @@ class ETradeOAuthIntegration:
             from google.cloud import secretmanager
             client = secretmanager.SecretManagerServiceClient()
             # Try to list secrets to test access
-            project_id = "easy-etrade-strategy"
+            project_id = "YOUR_GCP_PROJECT_ID"
             parent = f"projects/{project_id}"
             client.list_secrets(request={"parent": parent})
             return True
@@ -308,7 +308,7 @@ class ETradeOAuthIntegration:
             from google.cloud import secretmanager
             
             client = secretmanager.SecretManagerServiceClient()
-            project_id = "easy-etrade-strategy"
+            project_id = "YOUR_GCP_PROJECT_ID"
             secret_name = f"etrade-oauth-{self.environment}"
             name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
             

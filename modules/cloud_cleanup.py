@@ -10,14 +10,14 @@ import logging
 
 log = logging.getLogger(__name__)
 
-PROJECT_ID = os.environ.get("GCP_PROJECT", "easy-etrade-strategy")
+PROJECT_ID = os.environ.get("GCP_PROJECT", "YOUR_GCP_PROJECT_ID")
 REGION = os.environ.get("CLOUD_RUN_REGION", "us-central1")
 # Trading (RESEARCH + FINAL) + shared OAuth/Collector — 3 revisions each
 SERVICES = [
-    "easy-etrade-strategy",
-    "easy-etrade-strategy-live",
+    "YOUR_SERVICE_NAME",
+    "YOUR_SERVICE_NAME-live",
     "easy-collector",
-    "easy-etrade-strategy-oauth",
+    "YOUR_SERVICE_NAME-oauth",
 ]
 KEEP_REVISIONS = int(os.environ.get("KEEP_REVISIONS", "3"))
 

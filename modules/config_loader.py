@@ -986,8 +986,8 @@ def get_cloud_config() -> Dict[str, str]:
     """
     loader = get_config_loader()
     
-    project_id = loader.get_config_value("GCP_PROJECT_ID", "easy-etrade-strategy")
-    service_name = loader.get_config_value("GCP_SERVICE_NAME", "easy-etrade-strategy")
+    project_id = loader.get_config_value("GCP_PROJECT_ID", "YOUR_GCP_PROJECT_ID")
+    service_name = loader.get_config_value("GCP_SERVICE_NAME", "YOUR_SERVICE_NAME")
     region = loader.get_config_value("GCP_REGION", "us-central1")
     zone = loader.get_config_value("GCP_ZONE", "us-central1-a")
     

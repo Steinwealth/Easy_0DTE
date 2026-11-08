@@ -23,10 +23,10 @@ def _get_gcs_bucket_name() -> str:
     try:
         from .config_loader import get_cloud_config
         cloud_config = get_cloud_config()
-        return cloud_config.get("bucket_name", "easy-etrade-strategy-data")
+        return cloud_config.get("bucket_name", "YOUR_GCS_BUCKET")
     except Exception:
         # Fallback to environment variable or default
-        return os.getenv("GCS_BUCKET_NAME", "easy-etrade-strategy-data")
+        return os.getenv("GCS_BUCKET_NAME", "YOUR_GCS_BUCKET")
 
 GCS_BUCKET_NAME = _get_gcs_bucket_name()
 GCS_ENABLED = os.getenv("GCS_PERSISTENCE_ENABLED", "true").lower() == "true"

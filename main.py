@@ -565,7 +565,7 @@ async def start_http_server():
                 if not token_api_valid and not oauth_verified:
                     err_msg = (
                         "Token reloaded from Secret Manager but E*TRADE rejected live quote (SPY). "
-                        "Renew again at https://easy-trading-oauth-v2.web.app"
+                        "Renew again at https://YOUR-OAUTH-APP.web.app"
                     )
                     if system.alert_manager:
                         await system.alert_manager.send_oauth_renewal_error(environment, err_msg)

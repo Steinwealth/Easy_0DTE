@@ -14,7 +14,7 @@ from typing import List, Optional
 
 log = logging.getLogger(__name__)
 
-PROJECT_ID = "easy-etrade-strategy"
+PROJECT_ID = "YOUR_GCP_PROJECT_ID"
 DEFAULT_MAX_DESTROY_PER_CALL = 50
 MAX_PRUNE_ROUNDS = 40
 

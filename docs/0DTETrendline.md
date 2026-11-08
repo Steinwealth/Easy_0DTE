@@ -1,6 +1,6 @@
 # Easy 0DTE Strategy — Trendline 0DTE
 
-**Last updated:** October 30, 2026 — serving Demo `easy-etrade-strategy-00618-cvb`. Local source also has the Trade Profile strike-to-fill path ([0.OrderExecution.md](0.OrderExecution.md)), which that image does not yet include.
+**Last updated:** October 30, 2026 — serving Demo `YOUR_SERVICE_NAME-00618-cvb`. Local source also has the Trade Profile strike-to-fill path ([0.OrderExecution.md](0.OrderExecution.md)), which that image does not yet include.
 
 **This path:** numbered trendlines on each symbol. **TL0** is drawn on the **ORB1 15-minute box** (06:30–06:45). **TL1, TL2, TL3…** are drawn on the **ORB2 1-hour box** (06:30–07:30). A break of that line is a CALL (cap) or PUT (floor). Yahoo 1m backfill sets the real A1/A2 minutes. Day-freeze persistence is required so a Cloud Run restart keeps the same lines.
 
@@ -1535,7 +1535,7 @@ TOTAL_0DTE_MAX_POSITIONS=50
 
 Markers are **released on intraday stealth exit**, failed fill, and EOD close — slots recycle for later symbols.
 
-**Oct 13 2026 (deployed `easy-etrade-strategy-00599-lhd`) — release points and SINGLE_TP_ADMIT claim order.** Flag off: the claim runs before the Trade Profile / dir% confirm and is released on geometry mismatch, legacy risk reject, `max_open_positions_reached`, `dir_pct_data_unavailable`, `required_data_not_ready`, TP/dir% reject, executor failure, intraday exit and EOD close. Known leak (flag off, kept as-is): `missing_execution_intent` / `invalid_execution_intent` and exceptions before the executor do not release. Flag on: no claim before the TP; after the TP admits, `modules/tl_slot_admit.claim_slot_and_reserve` does one locked step — refresh capital → entry_budget = min(slot, available_cash − in-flight TL holds) → `buffer_reserve_exhausted` with zero GCS ops if ≤ 0 → GCS claim (fast path kept) → hold cash. Every non-fill exit (executor fail or exception) goes through one idempotent `release`; a fill keeps the marker (released on close) and drops the cash hold. Review: `TL_SLOT_REVIEW.md` (session_monitor/tl_slot_1013).
+**Oct 13 2026 (deployed `YOUR_SERVICE_NAME-00599-lhd`) — release points and SINGLE_TP_ADMIT claim order.** Flag off: the claim runs before the Trade Profile / dir% confirm and is released on geometry mismatch, legacy risk reject, `max_open_positions_reached`, `dir_pct_data_unavailable`, `required_data_not_ready`, TP/dir% reject, executor failure, intraday exit and EOD close. Known leak (flag off, kept as-is): `missing_execution_intent` / `invalid_execution_intent` and exceptions before the executor do not release. Flag on: no claim before the TP; after the TP admits, `modules/tl_slot_admit.claim_slot_and_reserve` does one locked step — refresh capital → entry_budget = min(slot, available_cash − in-flight TL holds) → `buffer_reserve_exhausted` with zero GCS ops if ≤ 0 → GCS claim (fast path kept) → hold cash. Every non-fill exit (executor fail or exception) goes through one idempotent `release`; a fill keeps the marker (released on close) and drops the cash hold. Review: `TL_SLOT_REVIEW.md` (session_monitor/tl_slot_1013).
 
 ---
 
@@ -1972,7 +1972,7 @@ When evaluating future Trendline build, emit, or gate changes, use this **priori
 
 **Developer validation:** `TrendlineSignalEngine.dry_run_candidate(...)` — replay build/break without live order. **Unit tests:** `tests/test_trendline_simple_mode.py`, `tests/test_geometry_phase1.py` (**17** — MSE misalign · keep broken same-side HD/GLD · buffer under/at/beyond · shared hull), `tests/test_trendline_emit_gates.py` (**11** — sustain lane + Phase 2 gates), `tests/test_trendline_orb2_extension.py`, `tests/test_trendline_orb_batch_order.py` (TL2/TL3 watch stays alive after TL1 expiry), `tests/test_pre730_structure_envelope.py`.
 
-## Oct 13 2026 — canonical spread rule (SINGLE_TP_ADMIT, deployed `easy-etrade-strategy-00599-lhd`)
+## Oct 13 2026 — canonical spread rule (SINGLE_TP_ADMIT, deployed `YOUR_SERVICE_NAME-00599-lhd`)
 
 Flag off (rollback; live through `00598`): ORB1 8 % (opening selector classes 9/10/12, hard 20), Trendline **and Breakout** 30 % (`TRENDLINE_OPTION_MAX_SPREAD_PCT=0.30`; BO reuses the TL executor), QG `spread` gate skips at admit (no contract yet). Flag on: one rule, per path — spread % of mid ≤ ORB1 **8** / Breakout **30** / Trendline **30** (`0DTE_MAX_SPREAD_PCT_ORB1` / `_BREAKOUT` / `_TRENDLINE`; Breakout now has its own explicit key instead of inheriting the TL cap; ORB1 opening-class 9/10/12 variants retired to 8) **or** ask−bid ≤ `0DTE_SPREAD_CHEAP_MAX_USD` (default $0.01), applied in the shared picker and re-checked at submit. Exit-grade spread (`OPTION_STEALTH_EXIT_GRADE_MAX_SPREAD_PCT`), `EXEC_LAST_LOOK_MAX_SPREAD_PCT`, Hard Gate 5 % and Skip-Signal chain-spread stamps are out of scope and unchanged. Review: `session_monitor/spread_1013/SPREAD_REVIEW.md`.
 

@@ -265,9 +265,9 @@ The desk is a static Firebase site, [https://easy-0dte.web.app](https://easy-0dt
 
 | Piece | Role |
 |-------|------|
-| Cloud Run `easy-etrade-strategy` | This app. Demo. Scale-to-zero |
-| Cloud Run `easy-etrade-strategy-oauth` | E\*TRADE token renewal |
-| GCS `easy-etrade-strategy-data` | Namespace `research_app/` — ledger, markers, optimizer objects, desk snapshots |
+| Cloud Run `YOUR_SERVICE_NAME` | This app. Demo. Scale-to-zero |
+| Cloud Run `YOUR_SERVICE_NAME-oauth` | E\*TRADE token renewal |
+| GCS `YOUR_GCS_BUCKET` | Namespace `research_app/` — ledger, markers, optimizer objects, desk snapshots |
 | Secret Manager | OAuth and alert secrets |
 | Cloud Scheduler | Keep-alives, morning alert, EOD. Validation jobs paused |
 | Firebase Hosting | Desk UI (`easy-0dte`) and the OAuth web app |
@@ -276,7 +276,7 @@ The desk is a static Firebase site, [https://easy-0dte.web.app](https://easy-0dt
 
 The Docker image is **Python 3.11** (`python:3.11-slim`). Local development is **Python 3.12.3**. The Cloud Run runtime is 3.11.
 
-Deploy only when asked, with `DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh`. That script merges env, refuses the Live service, and refuses a ledger reseed. Do not deploy during the cash session unless the request is an explicit emergency. The Live sibling `easy-etrade-strategy-live` is not the work target.
+Deploy only when asked, with `DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh`. That script merges env, refuses the Live service, and refuses a ledger reseed. Do not deploy during the cash session unless the request is an explicit emergency. The Live sibling `YOUR_SERVICE_NAME-live` is not the work target.
 
 ---
 

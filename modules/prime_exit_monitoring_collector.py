@@ -162,7 +162,7 @@ class PrimeExitMonitoringCollector:
     - This allows daily review of exit settings to optimize profit capture
     """
     
-    def __init__(self, gcs_bucket: str = "easy-etrade-strategy-data"):
+    def __init__(self, gcs_bucket: str = "YOUR_GCS_BUCKET"):
         self.enabled = EXIT_MONITORING_ENABLED
         self.gcs_bucket = gcs_bucket
         self.storage_client = None

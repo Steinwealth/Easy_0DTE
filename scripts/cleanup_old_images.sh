@@ -2,7 +2,7 @@
 # ======================================================
 # GCR Image Cleanup Script
 # Cleans up old container images while keeping recent ones
-# Project: easy-etrade-strategy
+# Project: YOUR_SERVICE_NAME
 # Rev 00259 + May 2026 fix: full sha256 digest + prune beyond KEEP_LATEST
 # ======================================================
 
@@ -13,7 +13,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-PROJECT_ID="${GCP_PROJECT:-easy-etrade-strategy}"
+PROJECT_ID="${GCP_PROJECT:-YOUR_GCP_PROJECT_ID}"
 KEEP_LATEST="${KEEP_LATEST:-3}"
 BATCH_PAUSE_SEC="${BATCH_PAUSE_SEC:-0}"
 
@@ -117,7 +117,7 @@ cleanup_repository() {
 echo "=========================================="
 echo "Cleaning up Easy ORB Strategy images"
 echo "=========================================="
-cleanup_repository "gcr.io/${PROJECT_ID}/easy-etrade-strategy"
+cleanup_repository "gcr.io/${PROJECT_ID}/YOUR_SERVICE_NAME"
 
 echo "=========================================="
 echo "Cleaning up Easy Collector images"
@@ -127,23 +127,23 @@ cleanup_repository "gcr.io/${PROJECT_ID}/easy-collector"
 echo "=========================================="
 echo "Cleaning up OAuth service images"
 echo "=========================================="
-cleanup_repository "gcr.io/${PROJECT_ID}/easy-etrade-strategy-oauth"
+cleanup_repository "gcr.io/${PROJECT_ID}/YOUR_SERVICE_NAME-oauth"
 
 echo "=========================================="
 echo "Cleaning up LIVE Mode sibling images"
 echo "=========================================="
-cleanup_repository "gcr.io/${PROJECT_ID}/easy-etrade-strategy-live"
+cleanup_repository "gcr.io/${PROJECT_ID}/YOUR_SERVICE_NAME-live"
 
 # Legacy repos (orphaned names — prune to same retention)
-for LEGACY in easy-etrade-strategy-scanner easy-etrade-strategy-v2 easy-etrade-strategyatest \
+for LEGACY in YOUR_SERVICE_NAME-scanner YOUR_SERVICE_NAME-v2 YOUR_SERVICE_NAMEatest \
   etrade-strategy etrade-strategy-scanner prime-trading-system tradingview-agent; do
   cleanup_repository "gcr.io/${PROJECT_ID}/${LEGACY}"
 done
 
-REMAINING=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/easy-etrade-strategy" --format="value(digest)" 2>/dev/null | wc -l | tr -d ' ')
-LIVE_REMAINING=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/easy-etrade-strategy-live" --format="value(digest)" 2>/dev/null | wc -l | tr -d ' ')
+REMAINING=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/YOUR_SERVICE_NAME" --format="value(digest)" 2>/dev/null | wc -l | tr -d ' ')
+LIVE_REMAINING=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/YOUR_SERVICE_NAME-live" --format="value(digest)" 2>/dev/null | wc -l | tr -d ' ')
 echo -e "${GREEN}✅ Image cleanup complete${NC}"
-echo "   easy-etrade-strategy images remaining: ${REMAINING:-unknown} (target ≤ ${KEEP_LATEST} + latest tag)"
-echo "   easy-etrade-strategy-live images remaining: ${LIVE_REMAINING:-unknown} (target ≤ ${KEEP_LATEST} + latest tag)"
+echo "   YOUR_SERVICE_NAME images remaining: ${REMAINING:-unknown} (target ≤ ${KEEP_LATEST} + latest tag)"
+echo "   YOUR_SERVICE_NAME-live images remaining: ${LIVE_REMAINING:-unknown} (target ≤ ${KEEP_LATEST} + latest tag)"
 echo ""
 echo "Re-run if failed>0 or count still high. Tune: KEEP_LATEST=3 ./scripts/cleanup_old_images.sh"

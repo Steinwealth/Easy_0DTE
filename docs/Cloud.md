@@ -6,7 +6,7 @@
 **Not this file:** Strategy → [0DTEORB1Breakout.md](0DTEORB1Breakout.md) · [0DTETrendline.md](0DTETrendline.md) · [0DTEORB2Breakout.md](0DTEORB2Breakout.md) · Risk → [0DTERisk.md](0DTERisk.md) · Env → [Configs.md](Configs.md).
 
 **Public document:** Placeholders only — no project IDs, URLs, revisions, or credentials.  
-**Operators:** [CloudSecrets.md](CloudSecrets.md) · Credentials → [PrivateSecrets.md](PrivateSecrets.md) · OAuth → [OAuth.md](OAuth.md) / [OAuthSecrets.md](OAuthSecrets.md).
+**Operators:** operator cloud inventory (not in this repository) · Credentials → operator private secrets (not in this repository) · OAuth → [OAuth.md](OAuth.md) / operator OAuth notes (not in this repository).
 
 ### Path matrix (RESEARCH)
 
@@ -18,7 +18,7 @@
 
 **Liveness vs keepalive:** Cloud Run **does not support TCP liveness** (TCP is startup-only). Deploy scripts pass **`--liveness-probe=""`** so HTTP `/health` is **not** a liveness probe. `/health` shares the trading asyncio loop — busy discovery used to starve it and Cloud Run killed the instance (Aug 24–26). Scheduler keep-alives may still **HTTP** `/api/health` as a wake ping; that is not liveness. Mock-ledger GCS I/O runs **off-loop**. RESEARCH Demo **`00515-m7w`** (Aug 26) has no HTTP liveness.
 
-**Deploy Demo:** `DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh` → `easy-etrade-strategy` · `MODE=demo` · `PORTFOLIO_PROTECTION_BLOCK_EXECUTION=false` · 0DTE / Trendline / Breakout `ENABLE_*=true` · SO/SC/validation **false**.
+**Deploy Demo:** `DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh` → `YOUR_SERVICE_NAME` · `MODE=demo` · `PORTFOLIO_PROTECTION_BLOCK_EXECUTION=false` · 0DTE / Trendline / Breakout `ENABLE_*=true` · SO/SC/validation **false**.
 
 ---
 
@@ -256,7 +256,7 @@ gcloud secrets create etrade-prod-refresh-token --data-file=-
 
 **Billing:** $0.06 per **ENABLED** secret version per month.
 
-**Canonical policy:** [OAuthSecrets.md](OAuthSecrets.md) — full protocols, API reference, incident history.
+**Canonical policy:** operator OAuth notes (not in this repository) — full protocols, API reference, incident history.
 
 | Layer | Mechanism | When |
 |-------|-----------|------|
@@ -277,7 +277,7 @@ bash scripts/verify_oauth_token_policy.sh   # audit + schedulers — does NOT ca
 bash scripts/setup_oauth_keepalive_scheduler.sh  # refresh hourly keep-alive URLs
 ```
 
-**Deploy:** Use Cloud Build configs (`cloudbuild.yaml`, `cloudbuild-oauth.yaml`) so Option C image cleanup runs automatically. Verify: `bash scripts/audit_oauth_secrets.sh` → **1 ENABLED** per prod token secret. See [CloudSecrets.md](CloudSecrets.md) for project-specific `gcloud` commands.
+**Deploy:** Use Cloud Build configs (`cloudbuild.yaml`, `cloudbuild-oauth.yaml`) so Option C image cleanup runs automatically. Verify: `bash scripts/audit_oauth_secrets.sh` → **1 ENABLED** per prod token secret. See operator cloud inventory (not in this repository) for project-specific `gcloud` commands.
 
 **Console rule:** Destroy old **versions** only — never delete whole secret resources (requires full OAuth renewal to recreate).
 
@@ -758,7 +758,7 @@ gcloud scheduler jobs create http gcr-image-cleanup-weekly \
 | `secret-manager-cleanup-friday` | Friday 3:00 AM PT | Secret Manager only (OAuth secrets → 1 version) | ORB + 0DTE |
 | ~~`easy-collector-*` (15 jobs)~~ | — | **Deleted Oct 25 2026** — Collector cloud retired; local `easyCollector/` kept | — |
 
-**Total Jobs**: 13 (11 enabled + 2 paused validation rollback). Collector Cloud Run `easy-collector` deleted the same day. Easy 0DTE services `easy-etrade-strategy` + `easy-etrade-strategy-oauth` unchanged.
+**Total Jobs**: 13 (11 enabled + 2 paused validation rollback). Collector Cloud Run `easy-collector` deleted the same day. Easy 0DTE services `YOUR_SERVICE_NAME` + `YOUR_SERVICE_NAME-oauth` unchanged.
 
 ---
 
@@ -772,7 +772,7 @@ This section covers **two policies**: (1) **OAuth token Secret Manager cleanup**
 
 ### **Token Secret Cleanup Policy (Rev 00358)**
 
-**Applies to:** OAuth token secrets in **your GCP project** (typically three prod token secrets — see [OAuthSecrets.md](OAuthSecrets.md)).
+**Applies to:** OAuth token secrets in **your GCP project** (typically three prod token secrets — see operator OAuth notes (not in this repository)).
 
 | Secret | Role | On renewal | On 11:55 PM ET purge |
 |--------|------|------------|----------------------|
@@ -812,15 +812,15 @@ Both apps share one GCP project and **identical cleanup scripts**. Deploy path d
 | | **RESEARCH APP** | **FINAL APP** |
 |---|------------------|---------------|
 | **Folder** | `1. The Easy ORB Strategy RESEARCH APP` | `1. The Easy ORB Strategy FINAL APP` |
-| **Cloud Run (Demo)** | `easy-etrade-strategy` | `easy-etrade-strategy-live` (`MODE=demo`) |
-| **Cloud Run (Live)** | Use FINAL sibling deploy | `easy-etrade-strategy-live` (`MODE=live`) |
-| **GCR image** | `gcr.io/…/easy-etrade-strategy` | `gcr.io/…/easy-etrade-strategy-live` |
+| **Cloud Run (Demo)** | `YOUR_SERVICE_NAME` | `YOUR_SERVICE_NAME-live` (`MODE=demo`) |
+| **Cloud Run (Live)** | Use FINAL sibling deploy | `YOUR_SERVICE_NAME-live` (`MODE=live`) |
+| **GCR image** | `gcr.io/…/YOUR_SERVICE_NAME` | `gcr.io/…/YOUR_SERVICE_NAME-live` |
 | **Cloud Build (Demo)** | `cloudbuild.yaml` | `cloudbuild-live.yaml` |
 | **Cloud Build (Live)** | `cloudbuild-live.yaml` (sibling image) | `cloudbuild-live.yaml` |
 | **Deploy (Demo)** | `DEPLOY_COMMANDS.sh` or `gcloud builds submit --config cloudbuild.yaml` | `DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh` |
 | **Deploy (Live)** | `DEPLOY_NOW=YES ./scripts/deploy_live_service.sh` | `DEPLOY_NOW=YES ./scripts/deploy_live_service.sh` |
 
-**Shared services (same project):** OAuth → `easy-etrade-strategy-oauth` · Collector → `easy-collector` (RESEARCH deploy only; schedulers typically **PAUSED**).
+**Shared services (same project):** OAuth → `YOUR_SERVICE_NAME-oauth` · Collector → `easy-collector` (RESEARCH deploy only; schedulers typically **PAUSED**).
 
 **Image cleanup (Option C):** Every Cloud Build pipeline ends with `scripts/cloudbuild_image_cleanup.sh`, which prunes **all four** GCR repos **and** Artifact Registry `cloud-run-source-deploy` to **3** digests + `latest` per package/repo. Weekly scheduler (`gcr-image-cleanup-weekly`) prunes **revisions + secrets only** — not images.
 
@@ -896,7 +896,7 @@ See [Cost Analysis](#cost-analysis) and [Cloud Deployment Optimization Strategy]
 
 #### Problem
 
-Each `gcloud builds submit` pushes a new digest to GCR. Without deletion, repos accumulate unbounded images. **Jul 2026 root cause of ~30 GB bloat:** `easy-etrade-strategy-live` had **42** digests because (1) `cloudbuild-live.yaml` had **no cleanup step**, and (2) `cleanup_old_images.sh` only pruned DEMO/OAuth/Collector — **never LIVE**. Weekly `gcr-image-cleanup-weekly` uses **`cleanup_images: false`** (no `gcloud` in the trading container).
+Each `gcloud builds submit` pushes a new digest to GCR. Without deletion, repos accumulate unbounded images. **Jul 2026 root cause of ~30 GB bloat:** `YOUR_SERVICE_NAME-live` had **42** digests because (1) `cloudbuild-live.yaml` had **no cleanup step**, and (2) `cleanup_old_images.sh` only pruned DEMO/OAuth/Collector — **never LIVE**. Weekly `gcr-image-cleanup-weekly` uses **`cleanup_images: false`** (no `gcloud` in the trading container).
 
 #### Implemented solution: Option C (Cloud Build post-deploy)
 
@@ -904,9 +904,9 @@ Each `gcloud builds submit` pushes a new digest to GCR. Without deletion, repos 
 
 | Pipeline | Config | Image pushed | Cleanup step |
 |----------|--------|--------------|--------------|
-| DEMO trading | `cloudbuild.yaml` | `easy-etrade-strategy:latest` | ✅ `gcr-image-cleanup` |
-| **LIVE trading** | `cloudbuild-live.yaml` | `easy-etrade-strategy-live:latest` | ✅ **added Jul 2026** |
-| OAuth | `cloudbuild-oauth.yaml` | `easy-etrade-strategy-oauth:latest` | ✅ `gcr-image-cleanup` |
+| DEMO trading | `cloudbuild.yaml` | `YOUR_SERVICE_NAME:latest` | ✅ `gcr-image-cleanup` |
+| **LIVE trading** | `cloudbuild-live.yaml` | `YOUR_SERVICE_NAME-live:latest` | ✅ **added Jul 2026** |
+| OAuth | `cloudbuild-oauth.yaml` | `YOUR_SERVICE_NAME-oauth:latest` | ✅ `gcr-image-cleanup` |
 | Collector | `easyCollector/cloudbuild.yaml` | `easy-collector:latest` | ✅ `gcr-image-cleanup` |
 
 **Cloud Build step (all four configs):**
@@ -925,7 +925,7 @@ Each `gcloud builds submit` pushes a new digest to GCR. Without deletion, repos 
 - Always keep any digest tagged **`latest`**
 - Target steady state: ≤ **4** images per repo (3 + `latest`)
 
-**Repos pruned (GCR):** `easy-etrade-strategy` · **`easy-etrade-strategy-live`** · `easy-collector` · `easy-etrade-strategy-oauth` · legacy orphans (`etrade-strategy*`, `prime-trading-system`, …)
+**Repos pruned (GCR):** `YOUR_SERVICE_NAME` · **`YOUR_SERVICE_NAME-live`** · `easy-collector` · `YOUR_SERVICE_NAME-oauth` · legacy orphans (`etrade-strategy*`, `prime-trading-system`, …)
 
 **Artifact Registry:** `cloud-run-source-deploy` — `scripts/cleanup_artifact_registry.sh` keeps **3** per package; `scripts/ar_lifecycle_cloud_run_source_deploy.json` applied for ongoing hygiene. Runs in `cloudbuild_image_cleanup.sh` after GCR prune.
 
@@ -1069,7 +1069,7 @@ gsutil lifecycle set lifecycle.json gs://YOUR_PROJECT_ID_cloudbuild/
 
 **Closeout date:** June 4, 2026 · **Status:** Maintenance mode — policies in repo are correct; **July 2026 live audit** found revision/GCR drift (see below). Treat Secret Manager regression and deploy-without-Cloud-Build as **reactive** incidents.
 
-### July 2026 live hygiene audit (project `easy-etrade-strategy`)
+### July 2026 live hygiene audit (project `YOUR_GCP_PROJECT_ID`)
 
 **Billing context:** May **$107.80** → June **$75.00** (~30% down — Secret Manager cleanup policies working). July day-1 forecast ~**$103** is extrapolation noise; re-check mid-month.
 
@@ -1082,11 +1082,11 @@ gsutil lifecycle set lifecycle.json gs://YOUR_PROJECT_ID_cloudbuild/
 | **Cleanup schedulers** | Fri + Sun ENABLED | `secret-manager-cleanup-friday` · `gcr-image-cleanup-weekly` | ✅ |
 | **`EXIT_MONITORING_ENABLED`** | `false` | `configs/Shared.env` — **false** | ✅ |
 | **Cloud Run revisions** | ≤ **3** per service | RESEARCH **3** · LIVE **3** · OAuth **3** · Collector **3** (Jul 2, 2026) | ✅ |
-| **GCR digests** | ≤ **3** + `latest` per active repo | `easy-etrade-strategy` **3** · `easy-etrade-strategy-live` **3** | ✅ |
+| **GCR digests** | ≤ **3** + `latest` per active repo | `YOUR_SERVICE_NAME` **3** · `YOUR_SERVICE_NAME-live` **3** | ✅ |
 | **Artifact Registry** | ≤ **3** per package in `cloud-run-source-deploy` | **12** total (~4 packages × 3) + lifecycle policy | ✅ |
 | **Legacy GCR repos** | Delete or ignore | `etrade-strategy*` · `prime-trading-system` · `tradingview-agent` — low $ but clutter | 🟡 optional purge |
 | **Secret Manager** | **1 ENABLED** per OAuth secret | Run `bash scripts/audit_oauth_secrets.sh` monthly | 🔍 verify |
-| **Cross-project bleed** | Only `easy-etrade-strategy` bills | Odin Kalshibot VM **TERMINATED** · TradingView schedulers **PAUSED** | ✅ |
+| **Cross-project bleed** | Only `YOUR_SERVICE_NAME` bills | Odin Kalshibot VM **TERMINATED** · TradingView schedulers **PAUSED** | ✅ |
 
 **Runaway cost #1 (historical):** Secret Manager OAuth version bloat — **~$191/mo** peak May 2026. **Mitigation in code:** keep-alive no longer writes SM versions; Fri/Sun cleanup jobs; `oauth-token-purge-2355et` nightly.
 
@@ -1096,7 +1096,7 @@ gsutil lifecycle set lifecycle.json gs://YOUR_PROJECT_ID_cloudbuild/
 cd "0. Strategies and Automations/1. The Easy ORB Strategy RESEARCH APP"
 
 # 1) Revisions + OAuth secret prune (in-container API)
-curl -s -X POST "https://easy-etrade-strategy-hskvzzwwxq-uc.a.run.app/api/cleanup/images" \
+curl -s -X POST "https://YOUR_SERVICE_NAME-hskvzzwwxq-uc.a.run.app/api/cleanup/images" \
   -H "Content-Type: application/json" \
   -d '{"cleanup_images": false, "cleanup_revisions": true, "cleanup_secrets": true}'
 # Repeat after 1–2 min if 429 quota hit
@@ -1109,7 +1109,7 @@ KEEP_LATEST=3 bash scripts/cleanup_artifact_registry.sh
 bash scripts/audit_oauth_secrets.sh
 ```
 
-**Healthy monthly target:** **~$33–38** for `easy-etrade-strategy` after 4 GiB + keepalive through 13:00 PT (observed Sep/Oct 2026 **~$55** on the current 8 GiB / 10-hour box). Odin residual **~$1.20/mo** (30 GB disk on a TERMINATED `kalshibot-demo` VM) until that disk is deleted.
+**Healthy monthly target:** **~$33–38** for `YOUR_SERVICE_NAME` after 4 GiB + keepalive through 13:00 PT (observed Sep/Oct 2026 **~$55** on the current 8 GiB / 10-hour box). Odin residual **~$1.20/mo** (30 GB disk on a TERMINATED `kalshibot-demo` VM) until that disk is deleted.
 
 **Operator note:** Local macOS `gcloud`/`gsutil` may crash Python (SDK + LibreSSL). Run remaining GCP one-time steps in **[Google Cloud Shell](https://console.cloud.google.com/?cloudshell=true)**:
 
@@ -1207,7 +1207,7 @@ Must-persist day-freeze + ledger + OAuth + **watch FSM** plane (full key table):
 | `etrade-sandbox-consumer-key/secret` | Exist, 1 ENABLED each — optional later delete (~$0.12/mo) |
 | `oauth-keepalive-sandbox` scheduler | **Deleted** |
 
-App uses **production tokens only** — [OAuthSecrets.md](OAuthSecrets.md).
+App uses **production tokens only** — operator OAuth notes (not in this repository).
 
 ### Actions NOT worth pursuing (cost)
 
@@ -1303,7 +1303,7 @@ gcloud scheduler jobs run gcr-image-cleanup-weekly --location=us-central1
 
 ### **Documentation References**
 
-- **Project-specific values and scripts:** [CloudSecrets.md](CloudSecrets.md) § Cloud Cleanup
+- **Project-specific values and scripts:** operator cloud inventory (not in this repository) § Cloud Cleanup
 - **Full cleanup policies:** [Cloud Cleanup Policies](#cloud-cleanup-policies) (above)
 - **Cost breakdown:** [Cost Analysis](#cost-analysis) (below)
 
@@ -1318,7 +1318,7 @@ gcloud scheduler jobs run gcr-image-cleanup-weekly --location=us-central1
 | **Cloud Run (Trading)** | 2 vCPU, **8 GiB**, scale-to-zero, CPU always on | **~$50–53** | Included | - | **~$50–53** |
 | **Cloud Run (OAuth)** | 1 vCPU, 512Mi, scale-to-zero | $0.30–0.50 | Included | - | $0.30–0.50 |
 | **Cloud Run (Collector)** | 1 vCPU, 512Mi | - | - | **$0** (schedulers PAUSED) | **$0** |
-| **Cloud Storage** | `easy-etrade-strategy-data` ~70 MB | ~$0.01 | Included | - | ~$0.01 |
+| **Cloud Storage** | `YOUR_GCS_BUCKET` ~70 MB | ~$0.01 | Included | - | ~$0.01 |
 | **Cloud Scheduler** | 11 enabled + 17 paused jobs | ~$2.50 | Included | paused jobs still count | ~$2.50 |
 | **Secret Manager** | 6 ENABLED static versions | $0.36 | Included | - | $0.36 |
 | **Artifact Registry / GCR** | 9.4 GB (active + leftover images) | ~$0.94 | Included | - | ~$0.94 |
@@ -1342,7 +1342,7 @@ gcloud scheduler jobs run gcr-image-cleanup-weekly --location=us-central1
 5. ✅ Efficient Cloud Scheduler usage
 6. ✅ **Secret Manager version cleanup** (automatic, keeps only latest version per secret)
 
-**After Secret Manager fix**: For further reductions (Cloud Run settings, TradingView Agent disabled, Scheduler job pruning, Artifact Registry), see **CloudSecrets.md** § Cost control and the session doc **CloudCostReduction.md** in `doc_elements/Sessions/2026/Feb12 Session/`.
+**After Secret Manager fix**: For further reductions (Cloud Run settings, TradingView Agent disabled, Scheduler job pruning, Artifact Registry), see **operator cloud inventory (not in this repository)** § Cost control and the session doc **CloudCostReduction.md** in `doc_elements/Sessions/2026/Feb12 Session/`.
 
 ### **Cost by Strategy**
 
@@ -1470,7 +1470,7 @@ curl https://YOUR_SERVICE_URL/api/health
 
 ### **Cloud Logging**
 
-**Prerequisites:** `gcloud auth login` and `gcloud config set project YOUR_PROJECT_ID`. See [CloudSecrets.md](CloudSecrets.md) for project-specific values and a full "How to Fetch Cloud Logs" reference.
+**Prerequisites:** `gcloud auth login` and `gcloud config set project YOUR_PROJECT_ID`. See operator cloud inventory (not in this repository) for project-specific values and a full "How to Fetch Cloud Logs" reference.
 
 View logs in real-time:
 ```bash
@@ -1491,7 +1491,7 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
     --format="table(timestamp,textPayload)"
 ```
 
-**Fetching Cloud Logs for Diagnosis:** Use `gcloud logging read` with text filters to pull specific events (e.g. signal collection, validation candle, 0-signals diagnosis). For the complete command set and copy-paste examples, see [CloudSecrets.md § How to Fetch Cloud Logs](CloudSecrets.md#how-to-fetch-cloud-logs).
+**Fetching Cloud Logs for Diagnosis:** Use `gcloud logging read` with text filters to pull specific events (e.g. signal collection, validation candle, 0-signals diagnosis). For the complete command set and copy-paste examples, see operator cloud inventory (not in this repository).
 
 ### **Cloud Logging — cost & volume (June 2026 audit)**
 
@@ -1552,7 +1552,7 @@ Follow this unified security framework to reduce risk from long-lived credential
 
 - **Never** commit API keys, OAuth tokens, or secrets to source code or version control.
 - Store all credentials in **Secret Manager** and inject at runtime (e.g. Cloud Run env or startup).
-- Keep a local **PrivateSecrets.md** (or similar) out of the repo (add to `.gitignore`); use it only for your own reference and for populating Secret Manager.
+- Keep a local **operator private secrets (not in this repository)** (or similar) out of the repo (add to `.gitignore`); use it only for your own reference and for populating Secret Manager.
 - This project uses Secret Manager for E*TRADE keys, Telegram tokens, and OAuth tokens; no secrets live in the codebase.
 
 #### **2. Disable dormant keys**
@@ -1775,7 +1775,7 @@ To migrate from GCP to AWS/Azure:
 - Secret Manager may be fresh while Cloud Run **in-memory** token is stale or rejected
 - Deploy a revision that includes OAuth reload + ORB token prep (Rev **00358+** feature set)
 - Renew at OAuth web app before 5:30 AM PT; grep `OAuth token reload` and `ORB_TOKEN_PREP`
-- See [OAuth.md](OAuth.md) and [CloudSecrets.md](CloudSecrets.md) for project-specific revision numbers and URLs
+- See [OAuth.md](OAuth.md) and operator cloud inventory (not in this repository) for project-specific revision numbers and URLs
 
 **High Costs**:
 - Verify scale-to-zero is enabled (`min-instances=0`)
@@ -1814,7 +1814,7 @@ gcloud billing projects list --billing-account=BILLING_ACCOUNT_ID
 
 ## 📝 **Revision History**
 
-Feature-level changelog (no project-specific revision IDs — see [CloudSecrets.md](CloudSecrets.md) for live deployment state).
+Feature-level changelog (no project-specific revision IDs — see operator cloud inventory (not in this repository) for live deployment state).
 
 ### **June 2026 — Telemetry hygiene (Rev Jun 15)**
 - Ledger rolling retention: `MOCK_OPTIONS_LEDGER_MAX_CLOSED_TRADES=400` (closed trades only)
@@ -1845,4 +1845,4 @@ Feature-level changelog (no project-specific revision IDs — see [CloudSecrets.
 
 ---
 
-*Last Updated: August 26, 2026 · Easy 0DTE Strategy — RESEARCH APP — placeholders only. TCP liveness local until `deploy now`. Project-specific values: [CloudSecrets.md](CloudSecrets.md)*
+*Last Updated: August 26, 2026 · Easy 0DTE Strategy — RESEARCH APP — placeholders only. TCP liveness local until `deploy now`. Project-specific values: operator cloud inventory (not in this repository)*

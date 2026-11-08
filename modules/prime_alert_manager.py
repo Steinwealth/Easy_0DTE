@@ -1138,7 +1138,7 @@ class PrimeAlertManager:
         # OAuth configuration
         oauth_config = get_config_value('OAUTH_ALERTS_ENABLED', 'true')
         self.oauth_enabled = str(oauth_config).lower() == 'true' if isinstance(oauth_config, (str, bool)) else True
-        self.oauth_renewal_url = get_config_value('OAUTH_RENEWAL_URL', 'https://easy-trading-oauth-v2.web.app')
+        self.oauth_renewal_url = get_config_value('OAUTH_RENEWAL_URL', 'https://YOUR-OAUTH-APP.web.app')
         self.oauth_morning_hour = int(get_config_value('OAUTH_MORNING_HOUR', '21'))
         self.oauth_morning_minute = int(get_config_value('OAUTH_MORNING_MINUTE', '0'))
         self.oauth_market_open_hour = int(get_config_value('OAUTH_MARKET_OPEN_HOUR', '5'))
@@ -2887,7 +2887,7 @@ class PrimeAlertManager:
 💎 Status: Trading system ready and operational
 
 🌐 Public Dashboard: 
-          https://easy-trading-oauth-v2.web.app"""
+          https://YOUR-OAUTH-APP.web.app"""
             
             success = await self._send_telegram_message(message, AlertLevel.SUCCESS)
             
@@ -3261,7 +3261,7 @@ class PrimeAlertManager:
 {_good_morning_trading_schedule_block()}
 
 🌐 Public Dashboard: 
-          https://easy-trading-oauth-v2.web.app
+          https://YOUR-OAUTH-APP.web.app
 
 ✅ Ready to trade!"""
                 
@@ -3283,12 +3283,12 @@ class PrimeAlertManager:
 {_good_morning_broker_other_tokens_na()}
 
 💎 Status:
-          Renew production token NOW — https://easy-trading-oauth-v2.web.app
+          Renew production token NOW — https://YOUR-OAUTH-APP.web.app
 
 {_good_morning_trading_schedule_block()}
 
 🌐 Public Dashboard: 
-          https://easy-trading-oauth-v2.web.app
+          https://YOUR-OAUTH-APP.web.app
 
 🚨 ORB will be PAUSED until live E*TRADE quotes succeed"""
                 alert_level = AlertLevel.ERROR
@@ -3315,7 +3315,7 @@ class PrimeAlertManager:
 {_good_morning_trading_schedule_block()}
 
 🌐 Public Dashboard:
-          https://easy-trading-oauth-v2.web.app
+          https://YOUR-OAUTH-APP.web.app
 
 ⚠️ Please renew Production token before market open!"""
                 
@@ -3382,7 +3382,7 @@ class PrimeAlertManager:
 💎 Status: Trading system ready (live SPY quote verified)
 
 🌐 Public Dashboard: 
-          https://easy-trading-oauth-v2.web.app"""
+          https://YOUR-OAUTH-APP.web.app"""
             
             success = await self._send_telegram_message(message, AlertLevel.SUCCESS)
             
@@ -4081,7 +4081,7 @@ All {total_rejected} signals were REJECTED due to insufficient capital.
 ⚠️ <b>Issue:</b> E*TRADE OAuth rejected or batch quotes returned empty (check logs for token_rejected)
 
 🔧 <b>Next Steps:</b>
-          1. Renew production token: https://easy-trading-oauth-v2.web.app
+          1. Renew production token: https://YOUR-OAUTH-APP.web.app
           2. Confirm trading service reloaded tokens (OAuth webhook / 6:25 AM prep)
           3. Manual recovery: POST /api/manual-orb-capture?force=true
 

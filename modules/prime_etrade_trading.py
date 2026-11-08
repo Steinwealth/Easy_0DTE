@@ -23,7 +23,7 @@ from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
 
 # Rev 00180h: Use Google Secret Manager directly (no local ETradeOAuth folder dependency)
-# Tokens are managed by https://easy-trading-oauth-v2.web.app/ and stored in Secret Manager
+# Tokens are managed by https://YOUR-OAUTH-APP.web.app/ and stored in Secret Manager
 try:
     from google.cloud import secretmanager
     SECRET_MANAGER_AVAILABLE = True
@@ -1061,7 +1061,7 @@ class PrimeETradeTrading:
         if not use_gcloud_cli:
             try:
                 # Rev 00180h: Load tokens directly from Secret Manager (no local folder dependency)
-                # Tokens managed by https://easy-trading-oauth-v2.web.app/
+                # Tokens managed by https://YOUR-OAUTH-APP.web.app/
                 if not SECRET_MANAGER_AVAILABLE:
                     log.warning("Secret Manager not available for token loading")
                     return None

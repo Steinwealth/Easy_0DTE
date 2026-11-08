@@ -1,8 +1,8 @@
 # System Architecture
 
 **Last updated:** November 7, 2026  
-**Serving:** `easy-etrade-strategy-00629-f7k` · Demo · 100% traffic · admit Wide · $100,000 sim ledger  
-**Rollback of this serving image:** `easy-etrade-strategy-00628-pf4`.  
+**Serving:** `YOUR_SERVICE_NAME-00629-f7k` · Demo · 100% traffic · admit Wide · $100,000 sim ledger  
+**Rollback of this serving image:** `YOUR_SERVICE_NAME-00628-pf4`.  
 **On this image:** sequential OCC inner batches of 25 + `yield_lane_to_equity_batch`; OCC defer only while last exact reusable; leftover OCC skip while owned; this-tick bid pret + HOLD (`live_path_v2_pret_from_tick`, `math.isfinite`); discovery scan vs watch; notification-only Telegram; Bid vs Mark MFE; eval JSONL `path_v2_peak` / qty / fees; TTL not raised.  
 **App:** Easy 0DTE Strategy, Research tree  
 **Spec:** [../EXECUTIVE_SUMMARY.md](../EXECUTIVE_SUMMARY.md) · **Session order:** [ProcessFlow.md](ProcessFlow.md)
@@ -106,7 +106,7 @@ Chain HTTP from discovery, a repair, or a last look goes through `fetch_0dte_int
 
 `unified_0dte_account.py` is the shared balance and registry for ORB1, Trendline, and ORB2. Caps are 50 on the book and on each path. The sum cap is $600. Demo cash is $100,000. GCS writes for the mock ledger run off the asyncio loop.
 
-`BROKER=etrade`. Other broker tokens fail closed at startup. FINAL Live service `easy-etrade-strategy-live` is a different Cloud Run service and is not this architecture's deploy target.
+`BROKER=etrade`. Other broker tokens fail closed at startup. FINAL Live service `YOUR_SERVICE_NAME-live` is a different Cloud Run service and is not this architecture's deploy target.
 
 ---
 
@@ -158,9 +158,9 @@ Wide collection is why the book is large. 10.23 is the profile those rows are fo
 
 | Piece | Role |
 |-------|------|
-| Cloud Run `easy-etrade-strategy` | This process. Image `gcr.io/easy-etrade-strategy/easy-etrade-strategy` |
-| Cloud Run `easy-etrade-strategy-oauth` | Token renewal |
-| GCS `easy-etrade-strategy-data` / `research_app/` | Ledger, ORB and TL markers, optimizer objects, desk snapshot |
+| Cloud Run `YOUR_SERVICE_NAME` | This process. Image `gcr.io/YOUR_GCP_PROJECT_ID/YOUR_SERVICE_NAME` |
+| Cloud Run `YOUR_SERVICE_NAME-oauth` | Token renewal |
+| GCS `YOUR_GCS_BUCKET` / `research_app/` | Ledger, ORB and TL markers, optimizer objects, desk snapshot |
 | Secret Manager | OAuth, Telegram |
 | Cloud Scheduler | Keep-alives, 5:30 morning, 12:55 EOD. Validation jobs paused |
 | Firebase `easy-0dte` | Desk UI, static. Not in the trading image |

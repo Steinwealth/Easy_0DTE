@@ -5,7 +5,7 @@
 **Version**: Rev **Aug 11** — reject emoji strip. Prior **Aug 10** watch-mode alert contracts. Prior **Aug 9** strategy consolidation. Prior **Jul 31** singles exit taxonomy. Prior **Jul 24** Breakout fill/close aligned with Trendline.  
 **Purpose**: User guide for the **RESEARCH Mode app** (`1. The Easy ORB Strategy RESEARCH APP`): **unified 0DTE ORB + Trendline + Breakout** on one options ledger. Includes Telegram setup and alert types.
 
-**⚠️ Note**: For sensitive deployment-specific information (Telegram bot tokens, chat IDs), see [PrivateSecrets.md](PrivateSecrets.md). For service URLs and project-specific cloud data, see [CloudSecrets.md](CloudSecrets.md).
+**⚠️ Note**: For sensitive deployment-specific information (Telegram bot tokens, chat IDs), see operator private secrets (not in this repository). For service URLs and project-specific cloud data, see operator cloud inventory (not in this repository).
 
 ---
 
@@ -308,7 +308,7 @@ Full SO ETF alert history remains in **DEMO Mode** app docs.
 
 **Watchlist order**: Display order follows **`0dte_list.csv`** row order.
 
-**Header (Rev Jun 11; mode Rev Jun 18; bar Rev Jun 23)**: Live app **`send_so_signal_collection()`** prepends **`====================================================================`** + **one blank line** before **`🪽 Trade Signal Collection`**. **No** desk banner — RESEARCH sibling injects **`🏁 RESEARCH APP 🏁`** via **`_inject_research_app_alert_banner()`**. Title → **`{mode} Mode`** on indented second line via **`_alert_mode_header_line()`**; **`Time:`** on the row below. Mode from runtime **`MODE`** via **`_resolve_telegram_mode_label()`** (e.g. soak deploy on **`easy-etrade-strategy-live`** with **`MODE=demo`** shows **`| DEMO Mode`**).
+**Header (Rev Jun 11; mode Rev Jun 18; bar Rev Jun 23)**: Live app **`send_so_signal_collection()`** prepends **`====================================================================`** + **one blank line** before **`🪽 Trade Signal Collection`**. **No** desk banner — RESEARCH sibling injects **`🏁 RESEARCH APP 🏁`** via **`_inject_research_app_alert_banner()`**. Title → **`{mode} Mode`** on indented second line via **`_alert_mode_header_line()`**; **`Time:`** on the row below. Mode from runtime **`MODE`** via **`_resolve_telegram_mode_label()`** (e.g. soak deploy on **`YOUR_SERVICE_NAME-live`** with **`MODE=demo`** shows **`| DEMO Mode`**).
 
 **Content**:
 - **Symbols scanned** — unified watchlist count (`0dte_list.csv`)
@@ -1516,14 +1516,14 @@ Not shown for `slot_request` · `buying_power` · `position_clamp` · market-qua
           E*TRADE tokens are <b>EXPIRED</b> ❌
 
 🌐 <b>Public Dashboard:</b>
-          https://easy-trading-oauth-v2.web.app
+          https://YOUR-OAUTH-APP.web.app
 
 ⚠️ Renew Production Token (used for all data and trading — Demo and Live)
 
 👉 <b>Action Required:</b>
 1. Visit the public dashboard
 2. Click "Renew Production" (production token only; sandbox not used)
-3. Enter access code (see PrivateSecrets.md)
+3. Enter access code (see operator private secrets (not in this repository))
 4. Complete OAuth authorization
 5. Token will be renewed and stored
 
@@ -1651,7 +1651,7 @@ The alert manager (`modules/prime_alert_manager.py`) is the **single Telegram ga
 | **Live app only** | **`send_so_signal_collection()`** prepends **`====================================================================`** + **one blank line** before the title row |
 | **No desk banner** | **`_send_telegram_message()`** calls **`_prepare_telegram_message_for_send()`** only — no **`🏁 RESEARCH APP 🏁`** line |
 | **RESEARCH app contrast** | RESEARCH sibling injects bar + **`RESEARCH_APP_ALERT_BANNER`** on every Telegram — see [Alerts.md](../1.%20The%20Easy%20ORB%20Strategy%20RESEARCH%20APP/docs/Alerts.md) Rev Jun 29 |
-| **Signal Collection §3** | Example uses Jun 23 production soak copy (`MODE=demo` on **`easy-etrade-strategy-live`**) |
+| **Signal Collection §3** | Example uses Jun 23 production soak copy (`MODE=demo` on **`YOUR_SERVICE_NAME-live`**) |
 
 ### **Rev Jun 25 — PP parity on 0DTE collection pool (June 25, 2026)**
 
@@ -1845,7 +1845,7 @@ curl -X POST "https://api.telegram.org/bot<TOKEN>/sendMessage" \
   -d "text=Test message"
 
 # View recent logs
-gcloud run services logs read easy-etrade-strategy --region=us-central1 --limit 50
+gcloud run services logs read YOUR_SERVICE_NAME --region=us-central1 --limit 50
 ```
 
 ---
@@ -2008,7 +2008,7 @@ gcloud run services logs read easy-etrade-strategy --region=us-central1 --limit 
 
 ### **Latest Updates (June 16, 2026 - Rev Jun 16)**
 
-**Rev Jun 16 (Jun 16 — deploy `easy-etrade-strategy-live-00017-x9n`)**:
+**Rev Jun 16 (Jun 16 — deploy `YOUR_SERVICE_NAME-live-00017-x9n`)**:
 - ✅ **Portfolio Protection §4** — `_portfolio_protection_alert_header()`: **`PORTFOLIO PROTECTION`** · **`| SKIP TRADING`** · **`| {mode} Mode`**; pool metrics **Avg MACD** / **Avg VWAP dist** on separate lines
 - ✅ **ORB 0DTE execution** pipeline labels: **`Broker routing (selector)`**, **`Execution failed/rejected`**
 - ✅ **Trendline** — Red Day tier gate when unified risk on; executor **`_last_execution_block_reason`** → specific **`Reason:`** on reject Telegram; pick/execute spread cap aligned @ 10%

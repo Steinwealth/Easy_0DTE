@@ -230,8 +230,8 @@ def live_spreads_enabled() -> bool:
     return os.getenv("LIVE_SPREADS_ENABLED", "false").strip().lower() == "true"
 
 
-_DEMO_CLOUD_SERVICE_NAMES = frozenset({"easy-etrade-strategy"})
-_LIVE_CLOUD_SERVICE_NAMES = frozenset({"easy-etrade-strategy-live"})
+_DEMO_CLOUD_SERVICE_NAMES = frozenset({"YOUR_SERVICE_NAME"})
+_LIVE_CLOUD_SERVICE_NAMES = frozenset({"YOUR_SERVICE_NAME-live"})
 
 GCS_RESEARCH_NAMESPACE = "research_app"
 GCS_FINAL_NAMESPACE = "final_app"
@@ -251,7 +251,7 @@ def is_live_cloud_service() -> bool:
 
 def is_demo_cloud_service() -> bool:
     """
-    True on the RESEARCH Cloud Run service (``easy-etrade-strategy``).
+    True on the RESEARCH Cloud Run service (``YOUR_SERVICE_NAME``).
 
     Session artifacts stay under ``research_app/`` regardless of MODE=demo|live
     so the RESEARCH desk never collides with the FINAL sibling app.

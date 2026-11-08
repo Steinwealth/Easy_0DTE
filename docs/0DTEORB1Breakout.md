@@ -1,7 +1,7 @@
 # Easy 0DTE — ORB SO · ORB1 Breakout
 
 **Filename:** `0DTEORB1Breakout.md` (ORB1 Breakout / ORB SO · formerly `0DTEORB.md`)  
-**Last updated:** October 30, 2026 — serving Demo `easy-etrade-strategy-00618-cvb`. Local source also has the Trade Profile strike-to-fill path ([0.OrderExecution.md](0.OrderExecution.md)), which that image does not yet include.
+**Last updated:** October 30, 2026 — serving Demo `YOUR_SERVICE_NAME-00618-cvb`. Local source also has the Trade Profile strike-to-fill path ([0.OrderExecution.md](0.OrderExecution.md)), which that image does not yet include.
 
 **This path (live):** **ORB1 Breakout** is a rolling watch on the **first 15 minutes**. The box is the High and Low of **06:30–06:45**, frozen at **06:45**. Entries run **06:45–07:25** exclusive, shared with TL0, on the next **24** names every **10s**. First print **0.08%** beyond that box → Trade Profile → order. It is **not** a 7:30 batch.
 
@@ -1594,7 +1594,7 @@ Protection floors (`breakeven_floor`, `trail_stop_premium`) may still be compute
 
 **Demo ledger (ORB1 Breakout + Trendline):** Unified mock options account (~**$5k** in `configs/Account0DTE.env`); GCS `demo_account/mock_options_history.json` (ORB + Trendline opens in one file). ORB SO ETF uses a **separate** ~$1k equity sim (`mock_trading_executor`).
 
-**Live:** E*TRADE Options API; `ETRADE_0DTE_ACCOUNT_ID`; OAuth via Secret Manager (renew after **11:55 PM ET** purge — see [OAuthSecrets.md](OAuthSecrets.md)).
+**Live:** E*TRADE Options API; `ETRADE_0DTE_ACCOUNT_ID`; OAuth via Secret Manager (renew after **11:55 PM ET** purge — see operator OAuth notes (not in this repository)).
 
 ---
 
@@ -1685,18 +1685,18 @@ There is **no** single ORB-0DTE loader class—authoritative inventory is **`con
 
 | Item | Value |
 |------|--------|
-| **Service** | `easy-etrade-strategy` (Cloud Run, `us-central1`) |
-| **Production (now)** | **`easy-etrade-strategy-00370-trm`** — Jun 11 grind desk (BUILD **`00383`** / **`00367-gsd`** unchanged since Jun 8 deploy) |
-| **Production @ Jun 11 desk** | **`easy-etrade-strategy-00370-trm`** — ORB SO **0/5** · ORB1 Breakout **0/1** (**WULF**) · Trendline **5** PUT · Gate **3b REDUCE** @ 50% — [Jun 11 session](doc_elements/Sessions/2026/Jun%2011%20Session/SESSION_SUMMARY_JUN11_2026.md) |
-| **Production @ Jun 9 desk** | **`easy-etrade-strategy-00368-g2k`** — Protection Day · ORB SO blocked · ORB1 Breakout gated · Trendline **0** executes — [Trendline Jun 9 review](../../1.%20The%20Easy%20ORB%20Strategy%20FINAL%20APP/docs/Improvement%20Guide/Trendline%20Improvements/TrendlineImprovementGuide.md#jun09-improvement-review-summary) |
-| **Production @ Jun 8 desk** | **`easy-etrade-strategy-00366-fwc`** — ORB1 Breakout **GOOGL PUT +130%** · SO Red Day flat |
-| **Production @ Jun 5 desk** | **`easy-etrade-strategy-00364-2n5`** (BUILD **`00381`**) — lotto-first; **MSTR** PUT **+503%** |
-| **Production @ Jun 4 desk** | **`easy-etrade-strategy-00363-n5j`** — pre-**00381** deploy |
-| **Production @ Jun 3 deploy** | **`easy-etrade-strategy-00360-9qn`** (BUILD **00379**) |
-| **Desk revision Jun 3** | **`easy-etrade-strategy-00359-pxp`** |
-| **Production @ Jun 2 deploy** | **`easy-etrade-strategy-00358-8kr`** (BUILD **00377**) |
-| **Production @ Jun 1 desk** | **`easy-etrade-strategy-00355-8z8`** |
-| **Prior deployed revision** | **`easy-etrade-strategy-00354-llj`** (BUILD **00371**) |
+| **Service** | `YOUR_SERVICE_NAME` (Cloud Run, `us-central1`) |
+| **Production (now)** | **`YOUR_SERVICE_NAME-00370-trm`** — Jun 11 grind desk (BUILD **`00383`** / **`00367-gsd`** unchanged since Jun 8 deploy) |
+| **Production @ Jun 11 desk** | **`YOUR_SERVICE_NAME-00370-trm`** — ORB SO **0/5** · ORB1 Breakout **0/1** (**WULF**) · Trendline **5** PUT · Gate **3b REDUCE** @ 50% — [Jun 11 session](doc_elements/Sessions/2026/Jun%2011%20Session/SESSION_SUMMARY_JUN11_2026.md) |
+| **Production @ Jun 9 desk** | **`YOUR_SERVICE_NAME-00368-g2k`** — Protection Day · ORB SO blocked · ORB1 Breakout gated · Trendline **0** executes — [Trendline Jun 9 review](../../1.%20The%20Easy%20ORB%20Strategy%20FINAL%20APP/docs/Improvement%20Guide/Trendline%20Improvements/TrendlineImprovementGuide.md#jun09-improvement-review-summary) |
+| **Production @ Jun 8 desk** | **`YOUR_SERVICE_NAME-00366-fwc`** — ORB1 Breakout **GOOGL PUT +130%** · SO Red Day flat |
+| **Production @ Jun 5 desk** | **`YOUR_SERVICE_NAME-00364-2n5`** (BUILD **`00381`**) — lotto-first; **MSTR** PUT **+503%** |
+| **Production @ Jun 4 desk** | **`YOUR_SERVICE_NAME-00363-n5j`** — pre-**00381** deploy |
+| **Production @ Jun 3 deploy** | **`YOUR_SERVICE_NAME-00360-9qn`** (BUILD **00379**) |
+| **Desk revision Jun 3** | **`YOUR_SERVICE_NAME-00359-pxp`** |
+| **Production @ Jun 2 deploy** | **`YOUR_SERVICE_NAME-00358-8kr`** (BUILD **00377**) |
+| **Production @ Jun 1 desk** | **`YOUR_SERVICE_NAME-00355-8z8`** |
+| **Prior deployed revision** | **`YOUR_SERVICE_NAME-00354-llj`** (BUILD **00371**) |
 | **Mode** | `ETRADE_MODE=demo`, all three paths enabled |
 | **Watchlists** | Unified **`0dte_list.csv`** (**78** symbols at Jun 9, 2026); legacy `core_list.csv` not loaded |
 | **E*TRADE aliases** | `CISCO`→`CSCO`, `NEBIUS`→`NBIS`, **`RUT`→`^RUT`**, **`SILVER`→`SLV`** at batch-quote / yfinance time (May 29 local) |
@@ -1944,7 +1944,7 @@ When evaluating future ORB SO or ORB1 Breakout changes, use this **priority orde
 | [ORBSO.md](ORBSO.md) | ORB SO ETF path + scheduler jobs |
 | [May 29 session](doc_elements/Sessions/2026/May29%20Session/SESSION_SUMMARY_MAY29_2026.md) | SO **1** + 0DTE **3/4** on **00370**; **00371** deploy EOD |
 | [May 28 session](doc_elements/Sessions/2026/May28%20Session/SESSION_SUMMARY_MAY28_2026.md) | 0DTE **33→6→0**; opening selector **00370** |
-| [OAuthSecrets.md](OAuthSecrets.md) | Token lifecycle |
+| operator OAuth notes (not in this repository) | Token lifecycle |
 | `easy0DTE/docs/` | Subsystem deep-dives |
 
 ---

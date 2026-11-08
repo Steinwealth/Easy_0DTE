@@ -2,7 +2,7 @@
 Portfolio Protection @ scheduler Step 5 (Gate 3a + 3b) — RESEARCH app.
 
 GCS persistence, enrichment guards, and mandatory audit logging for the
-easy-etrade-strategy Cloud Run service.
+YOUR_SERVICE_NAME Cloud Run service.
 """
 
 from __future__ import annotations

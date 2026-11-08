@@ -1,7 +1,7 @@
 # Easy 0DTE Strategy — ORB2 Breakout 0DTE
 
 **Filename:** `0DTEORB2Breakout.md` (ORB2 Breakout · formerly `0DTEBreakout.md`)  
-**Last updated:** October 30, 2026 — serving Demo `easy-etrade-strategy-00618-cvb`. Local source also has the Trade Profile strike-to-fill path ([0.OrderExecution.md](0.OrderExecution.md)), which that image does not yet include. `breakout_watch_activated` is cache session-tech + ORB box only (`po_fill_pct_scope=watch_activation`); do not score it as a 267-key training fill and do not add chain on a 200-name watch.
+**Last updated:** October 30, 2026 — serving Demo `YOUR_SERVICE_NAME-00618-cvb`. Local source also has the Trade Profile strike-to-fill path ([0.OrderExecution.md](0.OrderExecution.md)), which that image does not yet include. `breakout_watch_activated` is cache session-tech + ORB box only (`po_fill_pct_scope=watch_activation`); do not score it as a 267-key training fill and do not add chain on a 200-name watch.
 
 **This path:** **ORB2 Breakout** is a rolling watch on the **first hour**. The box is the High and Low of **06:30–07:30**, frozen at **07:30**. Entries run **07:30–12:30**, the same watch process as ORB1, on the next **24** names every **10s**. First print **0.08%** beyond that box → Trade Profile → order. The 1-hour range is not complete before 07:30, so this path does not enter during the 06:45–07:25 ORB1 window.
 

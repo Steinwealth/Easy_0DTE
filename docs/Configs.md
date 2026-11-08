@@ -45,7 +45,7 @@ The 10.18 profile also fills the same-side volume/OI ratio minima on every CALL 
 **Oct 14 2026 t172u/t189u — `dir_pct_change_5m` 5m chain keys: deploy env and deploy script (rev `00600-fpn`).** Architecture: `docs/Data.md` §5.3 "`dir_pct_change_5m` / 5m chain keys — architecture".
 - **Deploy env (only these two):** `DIR5M_APPROACH_SAMPLER_ENABLED=true` (code `false`), `DIR5M_APPROACH_MAX_PER_MIN=12` (code `6`). Every other `DIR5M_*` stays at its code default (table in Key env). Rollback: `DIR5M_APPROACH_SAMPLER_ENABLED=false`.
 - **Load:** 10/14 wide avg 39/min, p90 50, peak 102; with the sampler ~63 avg / ~126 peak vs E*TRADE 240/min (≈ 53 % peak) and the app 140/min hard cap.
-- **`scripts/deploy_demo_service.sh` (Demo `easy-etrade-strategy` only; refuses `*-live`).** Merge, never replace: snapshot the live env → baseline keys added only when missing → `DEPLOY_ENV_UPDATES` win (default the two keys above) → `gcloud run deploy --update-env-vars` with the delta only → post-deploy env diff check. Snapshots in `~/grokbot_transfer/deploy_snapshots`.
+- **`scripts/deploy_demo_service.sh` (Demo `YOUR_SERVICE_NAME` only; refuses `*-live`).** Merge, never replace: snapshot the live env → baseline keys added only when missing → `DEPLOY_ENV_UPDATES` win (default the two keys above) → `gcloud run deploy --update-env-vars` with the delta only → post-deploy env diff check. Snapshots in `~/grokbot_transfer/deploy_snapshots`.
 - **Protections:** protected keys must keep their values (`MODE=demo`, `SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide`, all position caps `=50`, `0DTE_MONITOR_MAX_SYMBOLS=50`, `0DTE_DEMO_STARTING_BALANCE=100000`, `0DTE_MAX_POSITION_SIZE_SUM=600`; override only with `ALLOW_PROTECTED_CHANGE=YES`). No ledger seed: aborts if `DEMO_SIM_LEDGER_SEED_ON_STARTUP` is on the service or in the update; `SEED_DEMO_LEDGERS` is refused. Runs only with `DEPLOY_NOW=YES`; `DRY_RUN=1` is read-only (prints the merged env and delta, no build/deploy).
 
 **Nov 5 2026 — UL pass-2 + OCC apply-on-complete (in `00625-wwv`).** Leave the owned UL fetch running past 4s/30s (`ul_refresh_slow` / `ul_refresh_hung`, cancel=false). In-tick join only when the UL loop is down. OCC does not `wait_for`-cancel a finished executor batch. `0DTE_OPEN_EXACT_QUOTE_BATCH_SIZE=25` (was 12 on `00624-8bn`). PATH_V2 `pret` is this tick's exact bid / entry − 1. Evaluate-path 20% snapshot does not wait 3s for hub. CALL-only Save (`SIDES=call`) is unchanged. Rollback `00624-8bn`. — [PositionMonitoring.md](PositionMonitoring.md) · [0DTEProfitCapture.md](0DTEProfitCapture.md).
@@ -58,13 +58,13 @@ The 10.18 profile also fills the same-side volume/OI ratio minima on every CALL 
 
 **Nov 3 2026 — Profit Capture STEP 2 20% Save stall save + UL-retrace extension (ON in `00624-8bn`, CALL-only).** STEP 2 is the +20% stall save (`twenty_percent_save` / `P20_STALL_SAVE`) plus the UL-retrace extension (`P20_UL_RETRACE_SAVE`), not the retired PVE3 latch (`PVE_20P_SAVE`). Shared.env `OPTION_PATH_V2_20P_SAVE_ENABLED=true` and `OPTION_PATH_V2_20P_SAVE_ULR_ENABLED=true`. Cloud Run `OPTION_PATH_V2_20P_SAVE_ENABLED=true` on `00624-8bn`. `SIDES=call` (file-only; puts like MSTR/NFLX/SLV/HD never save). Do not set a Cloud Run ULR override. Kill switch: stall `ENABLED=false` (whole STEP 2); ULR only `ULR_ENABLED=false`. Full STEP list: [0DTEProfitCapture.md](0DTEProfitCapture.md).
 
-**Serving now (Nov 5 2026):** RESEARCH Demo `easy-etrade-strategy-00625-wwv` · `MODE=demo` · `SINGLE_TP_ADMIT=true` · `TRADE_PROFILE_VERSION=wide` · sim ledger **$100,000** (seed flag off) · `OPTION_PATH_V2_20P_SAVE_ENABLED=true` (CALL-only from Shared.env `SIDES=call`) · JSONL **5s** / daily JSON **45s** · `0DTE_OPEN_EXACT_QUOTE_BATCH_SIZE=25`. Image is the Nov 5 UL/OCC pack (no 4s UL cancel, sequential OCC + `yield_lane_to_equity_batch`, reusable-gated OCC defer, eval JSONL engine/qty/fee keys) on the Nov 4 cadence (`_monitor_loop`, `u0dte_<ms>`). Serving still assigned `path_pret = current_pnl_pct`. The admit function is that path only. A slow exit quote does not skip the break check. The scan quote is the decision quote for **2 minutes** (`TP_FREEZE_QUOTE_MAX_AGE_SEC` default **120**). Rollback of this image: `00624-8bn`. FINAL is retired. Calendar: [MarketCalendar.md](MarketCalendar.md).
+**Serving now (Nov 5 2026):** RESEARCH Demo `YOUR_SERVICE_NAME-00625-wwv` · `MODE=demo` · `SINGLE_TP_ADMIT=true` · `TRADE_PROFILE_VERSION=wide` · sim ledger **$100,000** (seed flag off) · `OPTION_PATH_V2_20P_SAVE_ENABLED=true` (CALL-only from Shared.env `SIDES=call`) · JSONL **5s** / daily JSON **45s** · `0DTE_OPEN_EXACT_QUOTE_BATCH_SIZE=25`. Image is the Nov 5 UL/OCC pack (no 4s UL cancel, sequential OCC + `yield_lane_to_equity_batch`, reusable-gated OCC defer, eval JSONL engine/qty/fee keys) on the Nov 4 cadence (`_monitor_loop`, `u0dte_<ms>`). Serving still assigned `path_pret = current_pnl_pct`. The admit function is that path only. A slow exit quote does not skip the break check. The scan quote is the decision quote for **2 minutes** (`TP_FREEZE_QUOTE_MAX_AGE_SEC` default **120**). Rollback of this image: `00624-8bn`. FINAL is retired. Calendar: [MarketCalendar.md](MarketCalendar.md).
 
 **Nov 6 2026 — local runtime pack (not on serving).** `live_path_v2_pret_from_tick` (this-tick bid only; missing bid → HOLD); leftover OCC skip while owned (`0DTE_LEFTOVER_SHADOW_SKIP_WHEN_OWNED_SLOW=true`); discovery scan slot must not wait on a running watch (`unified_discovery_scan_slot_free`); Telegram flush is notification-only (`ledger_alert_flush.py`); desk Bid MFE% vs Mark MFE%. Local 10.23 successor is S0_maxnet (`trade_profile_10.23.json` sha `a449ab0d…`; not the live admit). 5s + PATH_V2 at 38/50 is a safe-degradation test — TTL 4s/8s not raised. Sequential OCC is architectural. Deploy only on explicit `deploy now`.
 
 **Oct 30 in `00619-xr6` (was local on `00618-cvb`):** A fill on this tick's monitor roster is watched. `ENROLLMENT_FAILED` is only a fill that never joins that roster. The first-seen stamp runs when the monitor takes the name, before an eval skip. Priority Optimizer `commit_bytes` holds one lock per object name. The first body is the object. A GCS 412 on that create-if-absent means the object is already there. A different body is a conflict and is not overwritten. Persist is time-correct without extra Market API: session tech uses bars whose minute close is ≤ the event; a future session-tech clock nulls RSI/MACD/BB; executed copies the handoff freeze; `first_red` ages the live OCC quote on that tick; mid-trade greeks restamp from that OCC quote; stale or unread chain volumes are nulled; owned 5m keys use OCC samples; flatten primes remaining opens once; `breakout_watch_activated` is not a 267-key training fill. Guide: [PriorityOptimizer.md](PriorityOptimizer.md). An accept orders the Trade Profile strike. Demo fills the sim ledger at that ask. Live limits at that ask, then one lift of $0.05–$0.15. Guide: [0.OrderExecution.md](0.OrderExecution.md). `00618-cvb` still re-selects after the accept.
 
-**Oct 13 2026, 3:08 PM PT — DEPLOYED `easy-etrade-strategy-00599-lhd` (RESEARCH Demo, 100% traffic, MODE=demo).** Image `gcr.io/easy-etrade-strategy/easy-etrade-strategy@sha256:ec62b222e35fb7cd6272e61111e0df4644e486c2279fdd1d83ae263c3b7a9e42`, commit `f8c5013`. Env added (`--update-env-vars` only): `SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide` (no shadow; 10.5 loaded but unused), caps pinned to **50**: `0DTE_SLOT_COUNT`, `TOTAL_/ORB_/BREAKOUT_/TRENDLINE_0DTE_MAX_POSITIONS`, `MAX_TOTAL_OPTION_POSITIONS`, `0DTE_MONITOR_MAX_SYMBOLS`. Spread 8/30/30 + $0.01, $600 sum cap unchanged. Rollback: `gcloud run services update-traffic easy-etrade-strategy --region us-central1 --to-revisions easy-etrade-strategy-00598-tr4=100` (or `SINGLE_TP_ADMIT=false`). FINAL Live Pilot untouched (cap 7). The "local, NOT deployed" note below is now deployed.
+**Oct 13 2026, 3:08 PM PT — DEPLOYED `YOUR_SERVICE_NAME-00599-lhd` (RESEARCH Demo, 100% traffic, MODE=demo).** Image `gcr.io/YOUR_GCP_PROJECT_ID/YOUR_SERVICE_NAME@sha256:YOUR_IMAGE_DIGEST`, commit `f8c5013`. Env added (`--update-env-vars` only): `SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide` (no shadow; 10.5 loaded but unused), caps pinned to **50**: `0DTE_SLOT_COUNT`, `TOTAL_/ORB_/BREAKOUT_/TRENDLINE_0DTE_MAX_POSITIONS`, `MAX_TOTAL_OPTION_POSITIONS`, `0DTE_MONITOR_MAX_SYMBOLS`. Spread 8/30/30 + $0.01, $600 sum cap unchanged. Rollback: `gcloud run services update-traffic YOUR_SERVICE_NAME --region us-central1 --to-revisions YOUR_SERVICE_NAME-00598-tr4=100` (or `SINGLE_TP_ADMIT=false`). FINAL Live Pilot untouched (cap 7). The "local, NOT deployed" note below is now deployed.
 
 **Oct 13 2026 — Single Trade Profile admit path (deployed `00599-lhd`; still the admit on `00625-wwv`).** RESEARCH only. Local source (Oct 29) has no flag-off branch. On the serving image the env is `true`, so every signal runs:
 
@@ -82,13 +82,13 @@ The 10.18 profile also fills the same-side volume/OI ratio minima on every CALL 
 
 **TP Wide** (`trade_profile_wide.json`, built by `build_tp_wide.py`): per cell `call_share`/`put_share` 0.10 (strict, same side); `break_distance_pct` ≤ 0.025 (ORB1, Breakout); **`equity_volume_ratio` ≥ 0.012 inclusive on all ten cells** (ORB1, TL0/TL1/TL2+, Breakout; Nov 2 2026 — was 0.12 on ORB1/Breakout). Missing still rejects. Env parity: `0DTE_HARD_GATE_*_VOL_FLOOR=0.012`, `BREAKOUT_MIN_VOLUME_RATIO=0.012`, `GATE_TL_Vol_Ratio_MIN=0.012`. 10.23 has no `equity_volume_ratio` line. No spread line (picker only), no Skip-Signal lines (outside TP). Picker `bid≤0` or `ask≤0` is `no_quote` (no two-sided book), not a $0 premium; cheap lottery is still ask **$0.03–$2.50**. An empty two-sided cache is `force_live` (`no_two_sided_quotes`); a stale `no_quote` pick holds `data_wait:chain_quotes` (no 1h cooldown). Local until `deploy now`.
 
-**Rollback of today's image:** traffic to `easy-etrade-strategy-00614-bbx`. `SINGLE_TP_ADMIT=false` still selects the old stack only on images that contain it (`00617` does; local source does not). Replays: 10.5 book through the legacy gate stays **215 / 167W/48L / +$93,331.32**; the single-TP engine with the legacy missing rule also reproduces 215 / +$93,331.32 exactly (0 diffs); with the new live missing table it is 90 / 81W/9L / +$45,236.50 (historical rows lack `dir_pct_change_5m`, `spy_change_pct`, L1, greeks). Wide parity on 10/13 decision records: 257/257 (100 %).
+**Rollback of today's image:** traffic to `YOUR_SERVICE_NAME-00614-bbx`. `SINGLE_TP_ADMIT=false` still selects the old stack only on images that contain it (`00617` does; local source does not). Replays: 10.5 book through the legacy gate stays **215 / 167W/48L / +$93,331.32**; the single-TP engine with the legacy missing rule also reproduces 215 / +$93,331.32 exactly (0 diffs); with the new live missing table it is 90 / 81W/9L / +$45,236.50 (historical rows lack `dir_pct_change_5m`, `spy_change_pct`, L1, greeks). Wide parity on 10/13 decision records: 257/257 (100 %).
 
 **Oct 11 2026 — Profit Capture GB30 gated 38pp extension (local next-deploy candidate, not deployed):** RESEARCH only. `modules/path_v2_exit.py` STEP 21 (now STEP 24) keeps the base `gb30_giveback` sale at 24pp, but when the exit snapshot has `ul_dd <= 0.0009` and `0.05 <= pret <= 0.10`, the extension latches and the 24pp touch is held until 38pp giveback or a later Profit Capture exit. New `Shared.env` §2b knobs: `OPTION_PATH_V2_GB30_EXTENSION_ENABLED=true`, `_GIVEBACK=0.38`, `_MAX_UL_DD=0.0009`, `_MIN_PRET=0.05`, `_MAX_PRET=0.10`. 8/19–10/9 replay versus the current PC V2 books: Total **+$4,433**, Trade Profile **+$3,045**, winner gain **+$4,433**, **$0 winner harm**, **0 winner→loss**, **0 worsened losses**. Rollback: set `OPTION_PATH_V2_GB30_EXTENSION_ENABLED=false`. Research artifacts: `docs/0.ProfitabilityThresholds/10.9/pc_gb30_38pp_compound_gate_scores_8.19-10.9.csv` and `pc_gb30_38pp_compound_gate_trades_8.19-10.9.csv`. — [0DTEProfitCapture.md](0DTEProfitCapture.md).
 
-**Oct 9 2026 — Research Demo admit is now the wide collection gates, not 10.5 (Eric, 10/9; deployed `easy-etrade-strategy-00596-sqc`, ~17:10 PT).** `QUALITY_GATE_ADMIT=wide_collect` (`configs/Shared.env`) runs the RESEARCH wide collect `GATE_*` stack (`quality_gate_stack.WIDE_COLLECT_STACKS`, copied verbatim from the last pre-Trade-Profile code `quality_gate_stack.py.bak_pruned88_20260921_193549`; levels from the Sep 17 wide-collect env): Layer C dir% strictly **>0.10** hard on ORB1 / TL / ORB2 (`0DTE_DIR_VOLUME_MIN_PCT`, `TRENDLINE_DIR_VOLUME_PCT`, `BREAKOUT_DIR_VOLUME_MIN_PCT` = 0.10) · `pc_oi` off · volume-ratio floor hard (ORB1/ORB2 **0.12**, TL **0.012**) · `break_max` **2.50%** hard (ORB1/ORB2) · ORB1/TL/ORB2 geometry + Layer D contract gates (δ 0.18–0.42, OTM ≤5.5% / BO ≤3.5%, liq, spread, BO cheap-lotto) hard · VWAP / RSI / BB / MACD / stamps observe · CALL / PUT Skip Signals **hard** (Eric 10/9 17:16 PT; `GATE_call_ss` / `GATE_put_ss` and the per-path `GATE_ORB/TL/BO_call_ss|put_ss` = hard, current levels `QG_CALL_SS_BREAK_DIST_MAX=0.00086` and `QG_PUT_SS_CALL_CHAIN_MIN=18800` + `QG_PUT_SS_BREAK_ORB_RATIO_MAX=0.287`; deployed `easy-etrade-strategy-00597-gdh`) · Path SS (`path_ss`) and `entry_part` stay **off** (Sep 4 wide collect had Path SS off). The 10.5 Trade Profile (`trade_profile_10.5.json`, sha `ddc81830…`) still loads and stamps its decision record and handoff keys, but runs **observe-only** (a TP reject or freeze deferral does not block). Rollback to the 10.5 admit: remove `QUALITY_GATE_ADMIT` (or set `trade_profile`) and restore the TP-era `GATE_*` lines from `~/Downloads/session_monitor/backup_wide_reseed_1009/repo/configs/`, or route traffic to `easy-etrade-strategy-00594-zn5`.
+**Oct 9 2026 — Research Demo admit is now the wide collection gates, not 10.5 (Eric, 10/9; deployed `YOUR_SERVICE_NAME-00596-sqc`, ~17:10 PT).** `QUALITY_GATE_ADMIT=wide_collect` (`configs/Shared.env`) runs the RESEARCH wide collect `GATE_*` stack (`quality_gate_stack.WIDE_COLLECT_STACKS`, copied verbatim from the last pre-Trade-Profile code `quality_gate_stack.py.bak_pruned88_20260921_193549`; levels from the Sep 17 wide-collect env): Layer C dir% strictly **>0.10** hard on ORB1 / TL / ORB2 (`0DTE_DIR_VOLUME_MIN_PCT`, `TRENDLINE_DIR_VOLUME_PCT`, `BREAKOUT_DIR_VOLUME_MIN_PCT` = 0.10) · `pc_oi` off · volume-ratio floor hard (ORB1/ORB2 **0.12**, TL **0.012**) · `break_max` **2.50%** hard (ORB1/ORB2) · ORB1/TL/ORB2 geometry + Layer D contract gates (δ 0.18–0.42, OTM ≤5.5% / BO ≤3.5%, liq, spread, BO cheap-lotto) hard · VWAP / RSI / BB / MACD / stamps observe · CALL / PUT Skip Signals **hard** (Eric 10/9 17:16 PT; `GATE_call_ss` / `GATE_put_ss` and the per-path `GATE_ORB/TL/BO_call_ss|put_ss` = hard, current levels `QG_CALL_SS_BREAK_DIST_MAX=0.00086` and `QG_PUT_SS_CALL_CHAIN_MIN=18800` + `QG_PUT_SS_BREAK_ORB_RATIO_MAX=0.287`; deployed `YOUR_SERVICE_NAME-00597-gdh`) · Path SS (`path_ss`) and `entry_part` stay **off** (Sep 4 wide collect had Path SS off). The 10.5 Trade Profile (`trade_profile_10.5.json`, sha `ddc81830…`) still loads and stamps its decision record and handoff keys, but runs **observe-only** (a TP reject or freeze deferral does not block). Rollback to the 10.5 admit: remove `QUALITY_GATE_ADMIT` (or set `trade_profile`) and restore the TP-era `GATE_*` lines from `~/Downloads/session_monitor/backup_wide_reseed_1009/repo/configs/`, or route traffic to `YOUR_SERVICE_NAME-00594-zn5`.
 
-**Oct 9 2026 — Demo $100,000 reseed + $600 sum cap (Eric, 10/9; `easy-etrade-strategy-00595-qqk` seed write, then `easy-etrade-strategy-00596-sqc` with the seed flag removed).** One-time `DEMO_SIM_LEDGER_SEED_ON_STARTUP=true` wiped `research_app/mock_options_history.json` (0 closed, 0 open, one `seed` equity point) and reset `desk_public` ledger/actions; the flag was then removed. `0DTE_DEMO_STARTING_BALANCE=100000` and `0DTE_MAX_POSITION_SIZE_SUM=600` in `Account0DTE.env` **and** Cloud Run env (`--update-env-vars`; Cloud Run env wins). Pre-wipe ledger backup: `gs://easy-etrade-strategy-data/backups/research_app_pre_reseed_20261009/` (balance $2,973.10 on $5,000 seed, 32 closed).
+**Oct 9 2026 — Demo $100,000 reseed + $600 sum cap (Eric, 10/9; `YOUR_SERVICE_NAME-00595-qqk` seed write, then `YOUR_SERVICE_NAME-00596-sqc` with the seed flag removed).** One-time `DEMO_SIM_LEDGER_SEED_ON_STARTUP=true` wiped `research_app/mock_options_history.json` (0 closed, 0 open, one `seed` equity point) and reset `desk_public` ledger/actions; the flag was then removed. `0DTE_DEMO_STARTING_BALANCE=100000` and `0DTE_MAX_POSITION_SIZE_SUM=600` in `Account0DTE.env` **and** Cloud Run env (`--update-env-vars`; Cloud Run env wins). Pre-wipe ledger backup: `gs://YOUR_GCS_BUCKET/backups/research_app_pre_reseed_20261009/` (balance $2,973.10 on $5,000 seed, 32 closed).
 
 **Oct 7 (Trade Profile decision freeze, time-correct data; Demo deploy approved by Eric 10/7 17:25 PT):** RESEARCH only.
 - **What it does.** The Trade Profile gate and the handoff snapshot now read one decision-time freeze object (`central_tech/decision_freeze.py`). It applies per-source age caps: chain 60 s, quote 20 s, SPY 45 s, session tech 90 s, and a strict 5m prior of 300 s ± 90 s. When a gated source is too old there is one targeted per-symbol refresh, deduped and budgeted (chain 300/session and 8/min, quote 300/session and 10/min). Stale policy is **defer**. The SPY fallback cap dropped from 120 s to 45 s.
@@ -104,7 +104,7 @@ The 10.18 profile also fills the same-side volume/OI ratio minima on every CALL 
 
 **Oct 5 (local only, not deployed): PO fill + admit/executor fixes.** From the Oct 5 PO snapshot audit (`/workspace/session_monitor/oct5_po_fill_and_fixes.md`). (1) `option_l1_imbalance`: gate chain stamp (`convex_chain_skew.stamp_path_ss_chain_fields_from_cache` → `central_tech.option_l1.stamp_option_l1_from_chain`) and the PO `cache_row` handoff path now carry option bid/ask size + imbalance (selected strike → representative → ATM; never a different strike when the selected one is known). (2) R6: `confirm_chain_skew_before_execution` no longer stamps 5m chain deltas before its chain fetch (`stamp_admit_tech(chain_trajectory=False)`), clears stale `dir_pct_change_5m` / `*_chain_volume_delta_5m` from row, metadata and nested `qg_admit` after a successful fetch, restamps, and persists those keys with overwrite; `chain_ring` ignores a prior sample with identical call+put chain volumes (same observation → None, not a fake 0.0). (3) New Layer D `contract_band` admit check for TL/BO (`easy0DTE/modules/admit_contract_band.py`): reject when the cached chain has no OTM-side contract with |δ| in [`0DTE_ENTRY_DELTA_MIN`, `0DTE_ENTRY_DELTA_MAX` + `TRENDLINE_DELTA_TOLERANCE`] within the path research OTM max (`QG_ADMIT_CONTRACT_BAND_CHECK`, default `true`; grep `QG_CONTRACT_BAND_REJECT`). (4) PO no longer writes `*_options_executed` (entry_executed + seal) when `broker_success=False` (`PO_WRITE_FAILED_EXECUTED_SNAPSHOT=true` restores; grep `PO_SNAPSHOT_SKIP | reason=fill_failed`).
 
-**Oct 8 (10.5 Trade Profile; deployed to Research Demo `easy-etrade-strategy-00594-zn5`, 10/8 ~20:01 PT):** RESEARCH only. The current default admit is the **10.5 flat Trade Profiles** ([0.TradeProfiles.md](0.TradeProfiles.md) section 2): `easy0DTE/configs/trade_profile_10.5.json`, gate `_evaluate_10_5` in `easy0DTE/modules/trade_profile.py`, and shadow selection in `easy0DTE/modules/quality_gate_stack.py`. `TRADE_PROFILE_VERSION`: unset or `10.5` = 10.5; `10.2nh` / `10.2` / `10.3` = 10.2/10.3 rollback; `10.1` = 10/1 Superior. `TRADE_PROFILE_105_JSON` overrides the 10.5 file path. Current (deployed) semantics: missing value passes by default; only ORB1/TL0 listed warm-up keys reject when missing (`ORB1 CALL`: `price_volume_efficiency_3m`, `distance_from_vwap_atr`, `rsi`; `ORB1 PUT`: `price_volume_efficiency_3m`, `rsi`; `TL0 CALL`: `rsi`; `TL0 PUT`: `dir_pct_change_5m`, `rsi`). `dir_pct_change_5m` / `spy_change_pct` exact `0.0` count as missing; PUT delta = `abs(delta)`. Startup logs `TP_PROFILE_LOADED | version=10.5 | active=10.5 | … | guards=97 | range_lines=95 | not_and=2 | bounds=162 | cells=10 | … | strict_bounds=5 | missing_reject=8 | missing_default=pass` (JSON sha256 `32792b3f270dec3038bc90a494b4475854ed4bf51b6b872375ea0baf2b942894`). Current 8/19–10/8 replay after removing weak/non-functional full-book TP-loss candidates: Total **4,257 trades, 946W/3,311L, −$152,927.11**; Trade Profile **196 trades, 151W/45L, +$90,293.82** under the current deployed code rule (missing passes except the warm-up reject keys). It omits two 10/7 trades that admit (SPCX Breakout PUT −$17.20, NVDA TL2+ CALL −$94.90): with them **198, 151W/47L, +$90,181.72**. Reference only: missing-reject on all gated keys gives **89, 77W/12L, +$47,845.10**; that rule is PLANNED (Eric, 10/8), not implemented, and needs a code change in `easy0DTE/modules/trade_profile.py` (lines 1637–1643, 1744–1746, 1864–1868). Deployed to Research Demo as `easy-etrade-strategy-00594-zn5` (10/8); previous revision `easy-etrade-strategy-00593-mkh`. Rollback: `gcloud run services update-traffic easy-etrade-strategy --to-revisions easy-etrade-strategy-00593-mkh=100 --region us-central1 --project easy-etrade-strategy` (pins traffic; a later deploy then needs `--to-latest`), or set `TRADE_PROFILE_VERSION=10.2nh` for the 10.2/10.3 profile on the new image.
+**Oct 8 (10.5 Trade Profile; deployed to Research Demo `YOUR_SERVICE_NAME-00594-zn5`, 10/8 ~20:01 PT):** RESEARCH only. The current default admit is the **10.5 flat Trade Profiles** ([0.TradeProfiles.md](0.TradeProfiles.md) section 2): `easy0DTE/configs/trade_profile_10.5.json`, gate `_evaluate_10_5` in `easy0DTE/modules/trade_profile.py`, and shadow selection in `easy0DTE/modules/quality_gate_stack.py`. `TRADE_PROFILE_VERSION`: unset or `10.5` = 10.5; `10.2nh` / `10.2` / `10.3` = 10.2/10.3 rollback; `10.1` = 10/1 Superior. `TRADE_PROFILE_105_JSON` overrides the 10.5 file path. Current (deployed) semantics: missing value passes by default; only ORB1/TL0 listed warm-up keys reject when missing (`ORB1 CALL`: `price_volume_efficiency_3m`, `distance_from_vwap_atr`, `rsi`; `ORB1 PUT`: `price_volume_efficiency_3m`, `rsi`; `TL0 CALL`: `rsi`; `TL0 PUT`: `dir_pct_change_5m`, `rsi`). `dir_pct_change_5m` / `spy_change_pct` exact `0.0` count as missing; PUT delta = `abs(delta)`. Startup logs `TP_PROFILE_LOADED | version=10.5 | active=10.5 | … | guards=97 | range_lines=95 | not_and=2 | bounds=162 | cells=10 | … | strict_bounds=5 | missing_reject=8 | missing_default=pass` (JSON sha256 `32792b3f270dec3038bc90a494b4475854ed4bf51b6b872375ea0baf2b942894`). Current 8/19–10/8 replay after removing weak/non-functional full-book TP-loss candidates: Total **4,257 trades, 946W/3,311L, −$152,927.11**; Trade Profile **196 trades, 151W/45L, +$90,293.82** under the current deployed code rule (missing passes except the warm-up reject keys). It omits two 10/7 trades that admit (SPCX Breakout PUT −$17.20, NVDA TL2+ CALL −$94.90): with them **198, 151W/47L, +$90,181.72**. Reference only: missing-reject on all gated keys gives **89, 77W/12L, +$47,845.10**; that rule is PLANNED (Eric, 10/8), not implemented, and needs a code change in `easy0DTE/modules/trade_profile.py` (lines 1637–1643, 1744–1746, 1864–1868). Deployed to Research Demo as `YOUR_SERVICE_NAME-00594-zn5` (10/8); previous revision `YOUR_SERVICE_NAME-00593-mkh`. Rollback: `gcloud run services update-traffic YOUR_SERVICE_NAME --to-revisions YOUR_SERVICE_NAME-00593-mkh=100 --region us-central1 --project YOUR_GCP_PROJECT_ID` (pins traffic; a later deploy then needs `--to-latest`), or set `TRADE_PROFILE_VERSION=10.2nh` for the 10.2/10.3 profile on the new image.
 
 **Oct 12 t155u (10.5 Trade Profile: TL1 CALL participation repair; local next-deploy candidate, not deployed):** RESEARCH only. Adds TL1 CALL `put_share > 0.239948820749` as a derived line from `put_chain_volume / (call_chain_volume + put_chain_volume)`, checked after `call_chain_open_interest` in the runtime 23-key template. JSON sha256 `2f241665b591010ebca6fb33a62017f13804ebc6559740f1a54e7e7ff25951be`; startup `guards=106 | range_lines=104 | not_and=2 | bounds=171 | … | template=CALL:23,PUT:23 | … | strict_bounds=6 | missing_reject=10`. Replay 8/19–10/9: Total **4,270 / 948W/3,322L / −$154,381.21**; Trade Profile **215 / 167W/48L / +$93,331.32**. Research Demo admit remains `wide_collect`; 10.5 is staged for a later Trade Profile admit switch.
 
@@ -138,17 +138,17 @@ The 10.18 profile also fills the same-side volume/OI ratio minima on every CALL 
 
 **Oct 3 (10.2/10.3 Trade Profile — DEPLOYED; Oct 5 Cloud Run logs show `version=10.2nh` live):** RESEARCH only. The admit is now the **10.2/10.3 Trade Profile (no history, with greeks)** in [0.TradeProfiles.md](0.TradeProfiles.md). It uses the same `trade_profile` gate and the same stack (`trade_profile` only). Changed: `easy0DTE/modules/trade_profile.py` (10.2/10.3 gate + version switch), `easy0DTE/modules/quality_gate_stack.py` (reads the 6 chain ratios and `put_chain_volume_delta_5m` already stamped by `central_tech`, plus the decision log line), new `easy0DTE/configs/trade_profile_10.2_nohist.json` (the profile, applied on the 10/1 tables and `greedy_mined_profile_rules.csv`), new tests `tests/test_trade_profile_10_2_*.py`, and docs `0.TradeProfiles.md` / `10.2_Implementation_Readiness.md`. `TRADE_PROFILE_VERSION`: unset (default) = 10.2/10.3; `10.1` rolls back to 10/1 Superior. `TRADE_PROFILE_SHADOW_LOG` (default `true`) adds the other version's verdict to each decision line. Startup logs `TP_PROFILE_LOADED` (JSON and CSV sha256, 15 guards, 1 lane, 1 tightened row). Each verdict logs one `TP_DECISION_VALUES` line (version, path/side, admit, reason, every key as read, `missing=[…]`). 8/19–10/2 replay through the app gate: **416 admits, 257W/159L, $85,138.91**; 10/2: **24 entered (17W/7L), 14 rejected**. Deployed before the Oct 5 session (gate log lines carry `version=10.2nh`).
 
-**Oct 1 (package B, Research Demo `00587-585`):** RESEARCH only. PATH_V2 in `Shared.env` §2b now has `OPTION_PATH_V2_GB30_GIVEBACK=0.24` (detail `GB30_24PP`; old `GB30_25PP` still normalizes). Two new exits are on: `gb32_timed_giveback` (`OPTION_PATH_V2_GB32_TIMED_ENABLED=true`, detail `GB32_40_TIMED_15PP`, passive limit) and `deep_green_stop` (`OPTION_PATH_V2_DEEP_STOP_ENABLED=true`, detail `DEEP_STOP_10_30_65`, moderate aggressive limit, not a market order). Both are the last PATH_V2 checks and fire only when no other exit fired on that tick. Shallow time stays `900` / `0.075`. Mandatory exits stay mandatory and still run first. Versus the 25pp GB30 baseline on the 8/19–10/1 replay: Trade Profile **$85,939.23 → $86,257.23**, **+$318.00**; Total **−$172,014.31 → −$168,713.31**, **+$3,301.00**. Both books are positive on the fit dates (8/19–9/19) and the holdout dates (9/22–10/1). Serving revision is `easy-etrade-strategy-00587-585` (1 Oct 2026, 7:25 PM PT, MODE=demo, 100% traffic). It replaces `easy-etrade-strategy-00586-c94`. Ledger was not reseeded. Final Live was not deployed. — [0DTEProfitCapture.md](0DTEProfitCapture.md).
+**Oct 1 (package B, Research Demo `00587-585`):** RESEARCH only. PATH_V2 in `Shared.env` §2b now has `OPTION_PATH_V2_GB30_GIVEBACK=0.24` (detail `GB30_24PP`; old `GB30_25PP` still normalizes). Two new exits are on: `gb32_timed_giveback` (`OPTION_PATH_V2_GB32_TIMED_ENABLED=true`, detail `GB32_40_TIMED_15PP`, passive limit) and `deep_green_stop` (`OPTION_PATH_V2_DEEP_STOP_ENABLED=true`, detail `DEEP_STOP_10_30_65`, moderate aggressive limit, not a market order). Both are the last PATH_V2 checks and fire only when no other exit fired on that tick. Shallow time stays `900` / `0.075`. Mandatory exits stay mandatory and still run first. Versus the 25pp GB30 baseline on the 8/19–10/1 replay: Trade Profile **$85,939.23 → $86,257.23**, **+$318.00**; Total **−$172,014.31 → −$168,713.31**, **+$3,301.00**. Both books are positive on the fit dates (8/19–9/19) and the holdout dates (9/22–10/1). Serving revision is `YOUR_SERVICE_NAME-00587-585` (1 Oct 2026, 7:25 PM PT, MODE=demo, 100% traffic). It replaces `YOUR_SERVICE_NAME-00586-c94`. Ledger was not reseeded. Final Live was not deployed. — [0DTEProfitCapture.md](0DTEProfitCapture.md).
 
 **Oct 1 earlier (PC V2 loss-management thresholds, GB30 later moved to 0.24 by package B):** RESEARCH only. Existing PATH_V2 exits updated in `Shared.env` §2b: `OPTION_PATH_V2_SHALLOW_TIME_STOP_SECONDS=900`, `OPTION_PATH_V2_SHALLOW_TIME_STOP_MAX_MFE=0.075`, and at that step `OPTION_PATH_V2_GB30_GIVEBACK=0.25`. Canonical exit ids stay `shallow_time_stop` and `gb30_giveback`; the detail alias at that step was `GB30_25PP` (current detail is `GB30_24PP`). Mandatory exits remain mandatory and still run first. 8/19–10/1 exact PC V2 replay: Total Results Book **−$170,272.81 → −$167,486.31**, **+$2,786.50**; Superior 10.1 Trade Profile Book **+$73,370.50 → +$74,113.14**, **+$742.64**. `last_stand_exit` standalone was weaker and added no overlay lift on top of this combo, so it remains research-not-shipped. These numbers are the step before package B and use a different replay basis than the package B books above. — [0DTEProfitCapture.md](0DTEProfitCapture.md).
 
-**Sep 30 (9/30 Trade Profile and 350% runner):** RESEARCH only. `runner_timed_capture` and `runner_profit_floor` are on in `Shared.env` §2b (`OPTION_PATH_V2_RUNNER_CAPTURE_ENABLED=true`). The 8/19–9/30 no-lookahead matrix selected arm `3.50`, timed current return `4.00`, peak ratio `0.50`, arm age `60s`, floor age `600s`, and floor ratio `0.80`. Both are passive limits. They run after `shallow_proof_stop`, `catastrophic_premium_stop`, afternoon `mfe_trail`, and `absorption_exit`, and before the hybrid trail, spike fail, stale fail, contract fade, shallow-green, GB30, and `hwm_rtc`. Versus current PC V2 baseline: total book **+$6,046**, Trade Profile book **+$4,420**, combined **+$10,466**, 18 improved / 5 worsened. The AMZN-max alternative (`3.50` / `6.00` / `0.80`) captured AMZN better but gave lower combined book lift and more worsened trades. Serving revision `easy-etrade-strategy-00585-86v` (30 Sep 2026, 6:14 PM PT, MODE=demo, 100% traffic) replaces `easy-etrade-strategy-00584-hdf`. It ships the 9/30 Trade Profile overlay and the 350% runner (arm `3.50`, timed return `4.00`, arm age `60s`, floor `0.80`). Ledger was not reseeded. Final Live was not deployed. — [0DTEProfitCapture.md](0DTEProfitCapture.md).
+**Sep 30 (9/30 Trade Profile and 350% runner):** RESEARCH only. `runner_timed_capture` and `runner_profit_floor` are on in `Shared.env` §2b (`OPTION_PATH_V2_RUNNER_CAPTURE_ENABLED=true`). The 8/19–9/30 no-lookahead matrix selected arm `3.50`, timed current return `4.00`, peak ratio `0.50`, arm age `60s`, floor age `600s`, and floor ratio `0.80`. Both are passive limits. They run after `shallow_proof_stop`, `catastrophic_premium_stop`, afternoon `mfe_trail`, and `absorption_exit`, and before the hybrid trail, spike fail, stale fail, contract fade, shallow-green, GB30, and `hwm_rtc`. Versus current PC V2 baseline: total book **+$6,046**, Trade Profile book **+$4,420**, combined **+$10,466**, 18 improved / 5 worsened. The AMZN-max alternative (`3.50` / `6.00` / `0.80`) captured AMZN better but gave lower combined book lift and more worsened trades. Serving revision `YOUR_SERVICE_NAME-00585-86v` (30 Sep 2026, 6:14 PM PT, MODE=demo, 100% traffic) replaces `YOUR_SERVICE_NAME-00584-hdf`. It ships the 9/30 Trade Profile overlay and the 350% runner (arm `3.50`, timed return `4.00`, arm age `60s`, floor `0.80`). Ledger was not reseeded. Final Live was not deployed. — [0DTEProfitCapture.md](0DTEProfitCapture.md).
 
-**Sep 28 evening (demo $5,000 reseed, `00579-vpg`):** RESEARCH Demo `easy-etrade-strategy` · MODE=demo · one-time seed wrote `research_app/mock_options_history.json` at **$5,000**, 0 closed, 0 open, then `DEMO_SIM_LEDGER_SEED_ON_STARTUP` was removed. Open book **7**. Dollar sum cap **off**. FINAL Live was not deployed. Replaced **`00578-8m7`** (seed write) and **`00577-bbl`**.
+**Sep 28 evening (demo $5,000 reseed, `00579-vpg`):** RESEARCH Demo `YOUR_SERVICE_NAME` · MODE=demo · one-time seed wrote `research_app/mock_options_history.json` at **$5,000**, 0 closed, 0 open, then `DEMO_SIM_LEDGER_SEED_ON_STARTUP` was removed. Open book **7**. Dollar sum cap **off**. FINAL Live was not deployed. Replaced **`00578-8m7`** (seed write) and **`00577-bbl`**.
 
 **Sep 29 (quality gate, local):** The admit stack is `trade_profile`, then `call_ss`, then `put_ss`. Call SS and Put SS default off. Chain-share dir% and put/call OI ratio are not on the stack. Serving revision `00579-vpg` still has the prior stack until `deploy now`.
 
-**Sep 28 evening (Trade Profile, Demo `00577-bbl`):** RESEARCH Demo `easy-etrade-strategy` · MODE=demo · ledger not reseeded · FINAL Live not deployed. Admit is the Trade Profile in [0.TradeProfiles.md](0.TradeProfiles.md). Entry, Skip, Delta Moon, dir%, volume ratio, and contract delta / OTM / liquidity / spread gates are off. Expected key missing rejects. This revision also includes the PATH_V2 settings already in `Shared.env`. Health ok. Replaced the prior demo revision.
+**Sep 28 evening (Trade Profile, Demo `00577-bbl`):** RESEARCH Demo `YOUR_SERVICE_NAME` · MODE=demo · ledger not reseeded · FINAL Live not deployed. Admit is the Trade Profile in [0.TradeProfiles.md](0.TradeProfiles.md). Entry, Skip, Delta Moon, dir%, volume ratio, and contract delta / OTM / liquidity / spread gates are off. Expected key missing rejects. This revision also includes the PATH_V2 settings already in `Shared.env`. Health ok. Replaced the prior demo revision.
 
 **Sep 28 (PATH_V2 stale high fail and spike fail on, hybrid trail off, shipped on `00577-bbl`):** RESEARCH only. `OPTION_PATH_V2_STALE_FAIL_ENABLED=true`. `OPTION_PATH_V2_SPIKE_FAIL_ENABLED=true`. `OPTION_PATH_V2_HYBRID_PREMIUM_TRAIL_ENABLED=false`. On the 9/10–9/25 Entry/Skip book (CALL ≥ 110k, PUT ≥ 11k, C2, R-PUT, 214 trades, theta off) spike fail plus the stale high fail replay at **$22,913.30** net, **$34,565.30** wins, **−$11,652.00** losses. The full 8/19–9/25 Entry/Skip book, 472 trades, replays at **$18,972.82** net, **$55,364.36** wins, **−$36,391.54** losses. The richer upper, reversal, and gap sales bank INTC, META, and QQQ-715 at +$171.20, +$71.40, and +$88.20 and reduce no winner. The hybrid stages stay off. Local until `deploy now`. — [0DTEProfitCapture.md](0DTEProfitCapture.md).
 
@@ -257,7 +257,7 @@ The 10.18 profile also fills the same-side volume/OI ratio minima on every CALL 
 
 | Key | Value |
 |-----|--------|
-| **Cloud Run** | RESEARCH Demo service `easy-etrade-strategy` · **serving `00625-wwv`** (Nov 5 2026 UL/OCC pack, $100,000 seed, `SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide`). Local Nov 6 runtime pack is not on this revision. URL in [CloudSecrets.md](CloudSecrets.md). |
+| **Cloud Run** | RESEARCH Demo service `YOUR_SERVICE_NAME` · **serving `00625-wwv`** (Nov 5 2026 UL/OCC pack, $100,000 seed, `SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide`). Local Nov 6 runtime pack is not on this revision. URL in operator cloud inventory (not in this repository). |
 | **MODE** | `demo` |
 | **Morning stack** | `ENABLE_ORB_STRATEGY=false` · `ENABLE_ORB_SIGNAL_COLLECTION=false` · `ENABLE_VALIDATION_CANDLE=false` · PP/Red Day **off** |
 | **ORB1** | `ORB_0DTE_DISCOVERY_MODE=watch` · floor **06:45–07:25** (activate with TL0 after structure) · **`expire_orb1_discovery_after_cutoff`** · **one-shot** (fill = one trade) |
@@ -310,13 +310,13 @@ The 10.18 profile also fills the same-side volume/OI ratio minima on every CALL 
 | [LiveModeReadiness.md](LiveModeReadiness.md) | RESEARCH Live ship path · FINAL checklists |
 | [Brokers.md](Brokers.md) | Brokers |
 
-**Public document.** Account IDs, tokens, and chat IDs → [PrivateSecrets.md](PrivateSecrets.md) or `secretsprivate/`. Project IDs, service URLs, and revisions → [CloudSecrets.md](CloudSecrets.md). OAuth token policy → [OAuthSecrets.md](OAuthSecrets.md).
+**Public document.** Account IDs, tokens, and chat IDs → operator private secrets (not in this repository) or `secretsprivate/`. Project IDs, service URLs, and revisions → operator cloud inventory (not in this repository). OAuth token policy → operator OAuth notes (not in this repository).
 
 ---
 
 ## Production Defaults Snapshot
 
-Operator baseline — RESEARCH Demo Cloud Run (`easy-etrade-strategy`) vs local `configs/`. Cloud Run column is revision **`00577-bbl`** (Sep 28 evening, Trade Profile, no reseed). Deploy scripts pin **8Gi** + concurrency **4**.
+Operator baseline — RESEARCH Demo Cloud Run (`YOUR_SERVICE_NAME`) vs local `configs/`. Cloud Run column is revision **`00577-bbl`** (Sep 28 evening, Trade Profile, no reseed). Deploy scripts pin **8Gi** + concurrency **4**.
 
 ### Deployment
 
@@ -633,12 +633,12 @@ Complete before setting `MODE=live` in production. RESEARCH path: **[LiveModeRea
 
 - [ ] Deploy Jun 5 local bundle (`MODE=demo` first) — explicit `deploy now` only
 - [ ] Demo production soak complete (≥ 1 session, no broker submits in logs)
-- [ ] **`broker_certification_passed`** on the 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`; [PrivateSecrets.md](PrivateSecrets.md)) (`--broker-certification-probe` or `GET /api/broker-certification`)
+- [ ] **`broker_certification_passed`** on the 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`; operator private secrets (not in this repository)) (`--broker-certification-probe` or `GET /api/broker-certification`)
 - [ ] **`OPTIONS_LEVEL_AUDIT pass=true`** · **`CONFIG_MODE_CONSISTENCY_AUDIT aligned=true`**
 - [ ] `PRODUCTION_STARTUP_AUDIT` shows expected values
 - [ ] Demo EOD alerts **DEMO**; demo GCS paths only
 - [ ] Tests green: **79/79** local broker/mode suite (see [Configuration Change Process](#configuration-change-process))
-- [ ] Cloud Run env: `MODE=live`, `BROKER=etrade`, `LIVE_SPREADS_ENABLED=false`, `ETRADE_0DTE_ACCOUNT_ID=<see PrivateSecrets.md>`
+- [ ] Cloud Run env: `MODE=live`, `BROKER=etrade`, `LIVE_SPREADS_ENABLED=false`, `ETRADE_0DTE_ACCOUNT_ID=<see operator private secrets (not in this repository)>`
 - [ ] OAuth valid; Live account ID confirmed
 - [ ] `--live-readiness-probe` or `GET /api/ready` returns `"ready": true`
 
@@ -673,7 +673,7 @@ Only **E*TRADE** is certified for Live Mode today. Interactive Brokers, Schwab, 
 | **TastyTrade** | Stub | Stub | Stub | Stub | ❌ `broker_not_etrade` | Not certified — P2 |
 | Robinhood / Alpaca / Tradier | — | — | — | — | — | Removed from `Data.env` Jun 18 |
 
-**E*TRADE certification (13 read-only audits):** OAuth · 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`; [PrivateSecrets.md](PrivateSecrets.md)) · balance · **`OPTIONS_LEVEL_AUDIT`** · buying power simulation · market hours · SPY/QQQ chains · contract resolution · preview/model/position/status.
+**E*TRADE certification (13 read-only audits):** OAuth · 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`; operator private secrets (not in this repository)) · balance · **`OPTIONS_LEVEL_AUDIT`** · buying power simulation · market hours · SPY/QQQ chains · contract resolution · preview/model/position/status.
 
 ```bash
 MODE=demo BROKER=etrade python3.11 main.py --broker-certification-probe
@@ -744,7 +744,7 @@ Robinhood, Alpaca, and Tradier were **removed** from `Data.env` (Phase 2 trim, J
 
 **Trading modes (E*TRADE):**
 - **Demo:** Real E*TRADE data · mock execution · no broker submit
-- **Live:** Real data · `ETradeBrokerAdapter` · 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`; [PrivateSecrets.md](PrivateSecrets.md))
+- **Live:** Real data · `ETradeBrokerAdapter` · 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`; operator private secrets (not in this repository))
 
 E*TRADE uses one production API (no sandbox). `MODE` controls execution layer, not API endpoint.
 
@@ -952,7 +952,7 @@ See [0DTEORB1Breakout.md §12](0DTEORB1Breakout.md#12-strategy-types-and-executi
 | **TL GATE admit** | `Trendline0DTE.env` | Deployed Research Demo: wide-collect gate stack; Trade Profile 10.5 observe-only. Staged TP-admit candidate: 10.5 t155u in [0.TradeProfiles.md](0.TradeProfiles.md). |
 | **Paused SC / validation / SO** | `ORBSO.env` | `ENABLE_ORB_SIGNAL_COLLECTION=false` · `ENABLE_VALIDATION_CANDLE=false` · `ENABLE_ORB_STRATEGY=false` |
 | **Shared discovery** | `Shared.env` | `0DTE_DISCOVERY_SYMBOLS_PER_TICK=24` · `0DTE_DISCOVERY_INTERVAL_SEC=10` (118 @ 24/10s → every symbol ≤**50s**; quotes only — ORB1→TL0/ORB1 BO; ORB2→TL1–6/ORB2 BO). CONFIRM/READY do **not** pin slots. |
-| **Quality Gate** | `easy0DTE/modules/quality_gate_stack.py` · `easy0DTE/modules/trade_profile.py` · `easy0DTE/configs/trade_profile_10.5.json` · `easy0DTE/configs/trade_profile_10.2_nohist.json` | Deployed Research Demo admit is `wide_collect` (`00596-sqc` / `00597-gdh`, 10/9). The 10.5 Trade Profile still loads, stamps, and records observe-only decisions. Current staged TP-admit candidate: 10.5 t155u (`2f241665…`, 215 / 167W/48L / +$93,331.32). Prior TP-admit deploy was `easy-etrade-strategy-00594-zn5` (10/8); rollback `easy-etrade-strategy-00593-mkh`. Catalog [0.TradeProfiles.md](0.TradeProfiles.md) |
+| **Quality Gate** | `easy0DTE/modules/quality_gate_stack.py` · `easy0DTE/modules/trade_profile.py` · `easy0DTE/configs/trade_profile_10.5.json` · `easy0DTE/configs/trade_profile_10.2_nohist.json` | Deployed Research Demo admit is `wide_collect` (`00596-sqc` / `00597-gdh`, 10/9). The 10.5 Trade Profile still loads, stamps, and records observe-only decisions. Current staged TP-admit candidate: 10.5 t155u (`2f241665…`, 215 / 167W/48L / +$93,331.32). Prior TP-admit deploy was `YOUR_SERVICE_NAME-00594-zn5` (10/8); rollback `YOUR_SERVICE_NAME-00593-mkh`. Catalog [0.TradeProfiles.md](0.TradeProfiles.md) |
 | **Skip Signals** | `Shared.env` | `GATE_call_ss=off` · `GATE_put_ss=off`. Not on the stack. Record only: [retired keys](#absolute-call--put-skip-signals--live-keys) |
 | **Hard Gate** | `ORB0DTE.env` | Watch execute clock = Shared `DISCOVERY_ORB1_TL0_*` · `0DTE_HARD_GATE_ALIGN_CONTINUATION_VOL=true` · `0DTE_HARD_GATE_*_VOL_FLOOR=0.012` (Nov 2; matches Wide) |
 | **Priority Score PS v2.1** | `ORB0DTE.env` | `0DTE_PRIORITY_USE_PS_V2=true` · fallback `0DTE_PRIORITY_USE_SO_RANK=true` |
@@ -1038,7 +1038,7 @@ See [0DTEORB1Breakout.md §12](0DTEORB1Breakout.md#12-strategy-types-and-executi
 | `CALL_RECHECK_BREAKOUT_MULTIPLIER` | `1.000` | 7:30 recheck — SO LONG + 0DTE CALL vs ORB high |
 | `PUT_RECHECK_BREAKDOWN_MULTIPLIER` | `1.000` | 7:30 recheck — 0DTE PUT vs ORB low |
 
-**Canonical Quality Gate (RESEARCH Demo):** **since 10/13** the live admit is `SINGLE_TP_ADMIT=true` / `TRADE_PROFILE_VERSION=wide` on `easy-etrade-strategy-00625-wwv`. The `wide_collect` stack (`QUALITY_GATE_ADMIT=wide_collect`, 10/9 `00596-sqc` / `00597-gdh`) with 10.5 Trade Profile observe-only is **10/9–10/13 history**. Local source no longer has that branch. The staged local TP-admit candidate remains 10.23 S0_maxnet (sha `a449ab0d…`; not the deployed admit). Prior hard TP-admit deploy was `easy-etrade-strategy-00594-zn5` (10/8; rollback `00593-mkh`). FINAL Live is retired.
+**Canonical Quality Gate (RESEARCH Demo):** **since 10/13** the live admit is `SINGLE_TP_ADMIT=true` / `TRADE_PROFILE_VERSION=wide` on `YOUR_SERVICE_NAME-00625-wwv`. The `wide_collect` stack (`QUALITY_GATE_ADMIT=wide_collect`, 10/9 `00596-sqc` / `00597-gdh`) with 10.5 Trade Profile observe-only is **10/9–10/13 history**. Local source no longer has that branch. The staged local TP-admit candidate remains 10.23 S0_maxnet (sha `a449ab0d…`; not the deployed admit). Prior hard TP-admit deploy was `YOUR_SERVICE_NAME-00594-zn5` (10/8; rollback `00593-mkh`). FINAL Live is retired.
 
 **Session tech (Jul 16 · unified Jul 29 · Aug 4 invent-clear):** With `0DTE_CONVEX_SESSION_TECH=true`, VWAP/MACD/RSI/volume_ratio for **ORB Convex, Trendline, and Breakout** come from one hub (`ensure_session_tech_bars` → `get_session_tech` → `apply_session_tech` · `tech_source=session_1m_rth`). Bar order: broker quote minutes → day_seed when thin → optional Yahoo RTH 1m backfill when closes &lt; 15 (`0DTE_SESSION_TECH_YF_1M_BACKFILL`). Missing RSI/MACD stamp as **null** + `*_missing` (never invent 50/0). Missing RSI is soft-skip. ORB1/TL0 volume missing **skip** (first-hour); BO volume missing fail-closed. Grep: `SESSION_TECH` · `0DTE_SESSION_TECH` · [Data.md §4](Data.md#4-session-tech-hub) · [0DTEORB1Breakout.md §8.2](0DTEORB1Breakout.md#82-hydrate--session-tech--chain-skew-steps-3–3b).
 
@@ -1210,9 +1210,9 @@ BROKER_TYPE=etrade  # etrade | interactive_brokers | schwab | tastytrade
 # 0DTE_BROKER_TYPE=etrade
 
 # E*TRADE Account Configuration
-ETRADE_ORB_ACCOUNT_ID=<see PrivateSecrets.md>       # ORB SO (Demo research)
-ETRADE_0DTE_ACCOUNT_ID=<see PrivateSecrets.md>     # ORB1 Breakout + Trendline + Breakout Live options
-ETRADE_DEFAULT_ACCOUNT_ID=<see PrivateSecrets.md>   # Fallback
+ETRADE_ORB_ACCOUNT_ID=<see operator private secrets (not in this repository)>       # ORB SO (Demo research)
+ETRADE_0DTE_ACCOUNT_ID=<see operator private secrets (not in this repository)>     # ORB1 Breakout + Trendline + Breakout Live options
+ETRADE_DEFAULT_ACCOUNT_ID=<see operator private secrets (not in this repository)>   # Fallback
 
 # Options approval (documented defaults — see options_level_audit.py)
 # REQUIRED_OPTIONS_LEVEL=2
@@ -1254,7 +1254,7 @@ DEPLOYMENT_MODE=demo  # demo or live
 BROKER_TYPE=etrade
 BROKER_DATA_ONLY=true  # All data from configured broker only
 
-# Google Cloud Configuration (see CloudSecrets.md for actual values)
+# Google Cloud Configuration (see operator cloud inventory (not in this repository) for actual values)
 GCP_PROJECT_ID=your-project-id
 GCP_REGION=us-central1
 GCP_ZONE=us-central1-a
@@ -1516,7 +1516,7 @@ PUT_RECHECK_BREAKDOWN_MULTIPLIER=1.000
 
 # Account Configuration (Rev 00245)
 # Managed by merged config (primarily Data.env + secretsprivate/secret manager)
-# See PrivateSecrets.md for actual account ID values
+# See operator private secrets (not in this repository) for actual account ID values
 # Backward compatible: Also checks 0DTE_ETRADE_ACCOUNT_ID
 
 # Execution quality guardrails (Rev 00319)
@@ -2610,8 +2610,8 @@ BROKER_TYPE=etrade
 **Important**: E*TRADE does not have separate sandbox/production APIs. Both Demo and Live use the **production E*TRADE API**. Demo = Sim account + mock balances ($5k ORB SO default, $5k 0DTE, $5k Trendline). Live = live account, real money.
 
 ```bash
-# Account IDs (see PrivateSecrets.md for actual values)
-# These are your actual E*TRADE account IDs - store in PrivateSecrets.md
+# Account IDs (see operator private secrets (not in this repository) for actual values)
+# These are your actual E*TRADE account IDs - store in operator private secrets (not in this repository)
 ETRADE_ORB_ACCOUNT_ID=your_orb_account_id_here      # ORB Strategy account
 ETRADE_0DTE_ACCOUNT_ID=your_0dte_account_id_here    # Easy 0DTE account
 ETRADE_DEFAULT_ACCOUNT_ID=your_default_account_id   # Default account (fallback)
@@ -2634,9 +2634,9 @@ ETRADE_RATE_LIMIT_CALLS_PER_MINUTE=100
 3. If not set, auto-select first available active account
 
 **Account Configuration**:
-- **ORB Strategy Account**: Separate account for ETF/stock trading (see PrivateSecrets.md)
-- **Easy 0DTE Account**: Separate account for options trading (see PrivateSecrets.md)
-- **Default Account**: Fallback account if strategy-specific not set (see PrivateSecrets.md)
+- **ORB Strategy Account**: Separate account for ETF/stock trading (see operator private secrets (not in this repository))
+- **Easy 0DTE Account**: Separate account for options trading (see operator private secrets (not in this repository))
+- **Default Account**: Fallback account if strategy-specific not set (see operator private secrets (not in this repository))
 
 **Broker Switching (when P2 adapters ship)**:
 1. Set `BROKER=<broker>` in `Shared.env` and `BROKER_TYPE` in `Data.env`
@@ -2718,8 +2718,8 @@ TELEGRAM_ALERTS_ENABLED=true
 TELEGRAM_ENABLED=true
 TELEGRAM_MAX_MESSAGES_PER_MINUTE=20
 ALERT_COOLDOWN_SECONDS=60
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here  # See PrivateSecrets.md
-TELEGRAM_CHAT_ID=your_telegram_chat_id_here      # See PrivateSecrets.md
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here  # See operator private secrets (not in this repository)
+TELEGRAM_CHAT_ID=your_telegram_chat_id_here      # See operator private secrets (not in this repository)
 ```
 
 **Alert levels** (`ALERT_LEVEL_*`) are in **`configs/Shared.env`**, not `Alerts.env`. Deprecated alias: `TELEGRAM_ALERT_COOLDOWN_SECONDS` → canonical **`ALERT_COOLDOWN_SECONDS`** (see `config_manifest.yaml`).
@@ -2766,11 +2766,11 @@ ENABLE_TRENDLINE_STRATEGY=true
 ### **Google Cloud Configuration**
 
 ```bash
-# GCP Project Settings (see CloudSecrets.md for actual values)
+# GCP Project Settings (see operator cloud inventory (not in this repository) for actual values)
 GCP_PROJECT_ID=your-project-id
 GCP_REGION=us-central1
 GCP_ZONE=us-central1-a
-GCP_SERVICE_NAME=your-service-name  # See CloudSecrets.md for actual value
+GCP_SERVICE_NAME=your-service-name  # See operator cloud inventory (not in this repository) for actual value
 GCS_BUCKET_NAME=your-project-id-data
 GCS_PERSISTENCE_ENABLED=true
 ```
@@ -2859,7 +2859,7 @@ EMERGENCY_STOP_ENABLED=true
 **Location**: Google Secret Manager  
 **Access**: Via service account with Secret Manager permissions
 
-**Secret names** (values live in Secret Manager / [PrivateSecrets.md](PrivateSecrets.md) / `secretsprivate/`):
+**Secret names** (values live in Secret Manager / operator private secrets (not in this repository) / `secretsprivate/`):
 - `etrade-prod-consumer-key` (Production consumer key)
 - `etrade-prod-consumer-secret` (Production consumer secret)
 - `etrade-oauth-prod` (Production OAuth tokens - JSON format)
@@ -2913,7 +2913,7 @@ LOG_LEVEL=INFO
 Set via `gcloud run deploy`:
 
 ```bash
-# Replace YOUR_SERVICE_NAME with your actual service name (see CloudSecrets.md)
+# Replace YOUR_SERVICE_NAME with your actual service name (see operator cloud inventory (not in this repository))
 gcloud run deploy YOUR_SERVICE_NAME \
     --set-env-vars="ENVIRONMENT=production,STRATEGY_MODE=standard,MODE=demo,BROKER=etrade,SYSTEM_MODE=full_trading,CLOUD_MODE=true,ENABLE_0DTE_STRATEGY=true,LOG_LEVEL=INFO"
 ```
@@ -3017,7 +3017,7 @@ These are visibility-only logs; they do not change strategy behavior or startup 
 
 **Issue**: Wrong account being used
 - ✅ Check merged broker config (`configs/Data.env`) and secrets layer for account IDs
-- ✅ Verify account IDs are correct (see PrivateSecrets.md)
+- ✅ Verify account IDs are correct (see operator private secrets (not in this repository))
 - ✅ Check account selection priority logic
 
 ### **Secrets Not Loading**
@@ -3036,7 +3036,7 @@ These are visibility-only logs; they do not change strategy behavior or startup 
 - **OAuth System**: See [OAuth.md](OAuth.md) for OAuth token management
 - **Cloud Deployment**: See [Cloud.md](Cloud.md) for cloud configuration
 - **Strategy Details**: See [ORBSO.md](ORBSO.md) (SO ETF) · [0DTEORB1Breakout.md](0DTEORB1Breakout.md) (ORB1 Breakout) · [0DTETrendline.md](0DTETrendline.md) · [0DTEORB2Breakout.md](0DTEORB2Breakout.md)
-- **Sensitive Information**: See [PrivateSecrets.md](PrivateSecrets.md) for deployment-specific values
+- **Sensitive Information**: See operator private secrets (not in this repository) for deployment-specific values
 
 ---
 
@@ -3363,7 +3363,7 @@ Deployment chronology retained for audit. For **current** baseline only, see [Pr
 
 - **Removed:** `0DTE_BROKER_EXECUTION_ENABLED`, `0DTE_DEMO_MOCK_FALLBACK_ON_BROKER_SUBMIT_FAIL`, `ENABLE_ORB_SO_STRATEGY` (wrong key — use `ENABLE_ORB_STRATEGY` in `ORBSO.env`).
 - **`MODE=demo`:** live E*TRADE market data + simulated ledgers (ETF + unified 0DTE) — no broker order submit.
-- **`MODE=live`:** broker API fill-confirmed opens/closes on the ORB quote account (`ETRADE_ORB_ACCOUNT_ID`) and the 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`). Values: [PrivateSecrets.md](PrivateSecrets.md).
+- **`MODE=live`:** broker API fill-confirmed opens/closes on the ORB quote account (`ETRADE_ORB_ACCOUNT_ID`) and the 0DTE options account (`ETRADE_0DTE_ACCOUNT_ID`). Values: operator private secrets (not in this repository).
 
 ### **September 17, 2026 — True-to-live fills vs protect floors (local)**
 
@@ -3491,7 +3491,7 @@ Deployment chronology retained for audit. For **current** baseline only, see [Pr
 - ✅ Comprehensive settings documentation
 - ✅ Complete configuration file reference
 - ✅ All settings organized by category
-- ✅ Sensitive information moved to PrivateSecrets.md
+- ✅ Sensitive information moved to operator private secrets (not in this repository)
 
 ### **Previous Updates**
 

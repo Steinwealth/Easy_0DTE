@@ -1,13 +1,13 @@
 # Deploying the Easy ORB / 0DTE Trading Service
 
-**Public document.** Copy-paste project IDs, image URLs, service-account emails, and Cloud Run URLs live in [CloudSecrets.md](CloudSecrets.md). Credentials and account IDs live in [PrivateSecrets.md](PrivateSecrets.md) or `secretsprivate/`.
+**Public document.** Copy-paste project IDs, image URLs, service-account emails, and Cloud Run URLs live in operator cloud inventory (not in this repository). Credentials and account IDs live in operator private secrets (not in this repository) or `secretsprivate/`.
 
-**Service:** RESEARCH Cloud Run (`easy-etrade-strategy` — **ORB ETF + ORB 0DTE + Trendline 0DTE** shared runtime)  
-**Serving today:** `easy-etrade-strategy-00625-wwv` (Demo, 100% traffic). Sequential OCC inner batches of 25 + UL lane yield; no 4s/30s UL cancel; OCC apply-on-complete; eval JSONL engine/qty/fee keys; `0DTE_OPEN_EXACT_QUOTE_BATCH_SIZE=25`.  
-**Rollback of this revision:** `easy-etrade-strategy-00624-8bn`.  
+**Service:** RESEARCH Cloud Run (`YOUR_SERVICE_NAME` — **ORB ETF + ORB 0DTE + Trendline 0DTE** shared runtime)  
+**Serving today:** `YOUR_SERVICE_NAME-00625-wwv` (Demo, 100% traffic). Sequential OCC inner batches of 25 + UL lane yield; no 4s/30s UL cancel; OCC apply-on-complete; eval JSONL engine/qty/fee keys; `0DTE_OPEN_EXACT_QUOTE_BATCH_SIZE=25`.  
+**Rollback of this revision:** `YOUR_SERVICE_NAME-00624-8bn`.  
 **Path (project root):** `0. Strategies and Automations/1. The Easy ORB Strategy RESEARCH APP`
 
-This is a **quick operator checklist** for deploying code changes for the trading service to Cloud Run. For full cloud details see [Cloud.md](Cloud.md) (placeholders) and [CloudSecrets.md](CloudSecrets.md) (this project).
+This is a **quick operator checklist** for deploying code changes for the trading service to Cloud Run. For full cloud details see [Cloud.md](Cloud.md) (placeholders) and operator cloud inventory (not in this repository) (this project).
 
 **Keep uploads lean:** Read **[§2 Lean Cloud Build source](#2-lean-cloud-build-source-upload-mandatory-before-each-deploy)** before every `gcloud builds submit` so future deploys stay fast and under the size budget.
 
@@ -28,10 +28,10 @@ This is a **quick operator checklist** for deploying code changes for the tradin
 - **Local path:** You are in the RESEARCH APP root:
   - `cd "0. Strategies and Automations/1. The Easy ORB Strategy RESEARCH APP"`
 - **gcloud configured to correct project:**
-  - `gcloud config set project YOUR_PROJECT_ID` (see [CloudSecrets.md](CloudSecrets.md))
+  - `gcloud config set project YOUR_PROJECT_ID` (see operator cloud inventory (not in this repository))
 - **Auth:** You are logged in and allowed to deploy:
-  - Permission to act as the trading service account (email in [CloudSecrets.md](CloudSecrets.md))
-  - See [CloudSecrets.md](CloudSecrets.md) → *Service Names and URLs* if you need to re-check roles.
+  - Permission to act as the trading service account (email in operator cloud inventory (not in this repository))
+  - See operator cloud inventory (not in this repository) → *Service Names and URLs* if you need to re-check roles.
 - **Code state:**
   - All desired fixes are committed (optional but recommended).
   - `BUILD_ID.txt` updated if you want a new build marker layer.
@@ -103,7 +103,7 @@ From the ORB Strategy root:
 
 ```bash
 cd "0. Strategies and Automations/1. The Easy ORB Strategy RESEARCH APP"
-gcloud config set project YOUR_PROJECT_ID   # CloudSecrets.md
+gcloud config set project YOUR_PROJECT_ID   # operator cloud inventory (not in this repository)
 
 gcloud builds submit \
   --tag gcr.io/YOUR_PROJECT_ID/YOUR_SERVICE_NAME:latest .
@@ -111,7 +111,7 @@ gcloud builds submit \
 
 Notes:
 - This uploads the current directory **subject to `.gcloudignore`** as build context and runs the `Dockerfile`.
-- The resulting image is pushed as `gcr.io/YOUR_PROJECT_ID/YOUR_SERVICE_NAME:latest` (see [CloudSecrets.md](CloudSecrets.md)).
+- The resulting image is pushed as `gcr.io/YOUR_PROJECT_ID/YOUR_SERVICE_NAME:latest` (see operator cloud inventory (not in this repository)).
 - **Image contents (three trading paths):** `modules/` + `main.py` (ORB ETF/core), **`easy0DTE/`** (ORB 0DTE options), **`easyTrendline/`** (Trendline 0DTE). The Dockerfile **RUN** step fails the build if checked entrypoints for those paths are missing.
 
 ---
@@ -131,10 +131,10 @@ gcloud run deploy YOUR_SERVICE_NAME \
   --allow-unauthenticated
 ```
 
-Prefer **`DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh`** (or `deploy_live_service.sh`) over hand-built `gcloud` so env stays in sync. Copy-paste values: [CloudSecrets.md](CloudSecrets.md).
+Prefer **`DEPLOY_NOW=YES ./scripts/deploy_demo_service.sh`** (or `deploy_live_service.sh`) over hand-built `gcloud` so env stays in sync. Copy-paste values: operator cloud inventory (not in this repository).
 
 Key points:
-- **Project / region / service account:** [CloudSecrets.md](CloudSecrets.md)
+- **Project / region / service account:** operator cloud inventory (not in this repository)
 - **Env vars:** match the production trading configuration (`MODE=demo` unless Live cutover).
 
 ---
@@ -143,7 +143,7 @@ Key points:
 
 After `gcloud run deploy` reports success:
 
-1. **Check service URL** — [CloudSecrets.md](CloudSecrets.md) (do not paste the live URL into public docs).
+1. **Check service URL** — operator cloud inventory (not in this repository) (do not paste the live URL into public docs).
 2. **Health endpoint (optional):**
    - `GET /health` on the service URL should return OK.
 3. **Logs:**
@@ -153,7 +153,7 @@ After `gcloud run deploy` reports success:
      - `PIPELINE | STEP 5 TRADE EXECUTION`
 4. **Scheduler jobs:** (only if changed or after a long pause)
    - Validation/Prefetch jobs and trading jobs should still point to the correct service URL.
-   - Reference [CloudSecrets.md](CloudSecrets.md) → *Cloud Scheduler Jobs (Project-Specific)* for commands.
+   - Reference operator cloud inventory (not in this repository) → *Cloud Scheduler Jobs (Project-Specific)* for commands.
 
 ---
 
@@ -164,7 +164,7 @@ After `gcloud run deploy` reports success:
   - Verify Signal Collection and alerts on the next open before enabling live accounts.
   - Keep Cloud Logging open during 6:30–7:45 AM PT to confirm ORB/0DTE flows.
 - Use cleanup scripts periodically to control image/revision sprawl:
-  - See [CloudSecrets.md](CloudSecrets.md) → *Cloud Cleanup* for `cleanup_old_images.sh` and `cleanup_old_revisions.sh`.
+  - See operator cloud inventory (not in this repository) → *Cloud Cleanup* for `cleanup_old_images.sh` and `cleanup_old_revisions.sh`.
 
 ---
 

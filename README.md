@@ -48,7 +48,7 @@ Specification: [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md).
 
 | Component | Role |
 |-----------|------|
-| **Cloud Run** | Session engine (`easy-etrade-strategy`, `MODE=demo`) plus a separate OAuth token-renewal service |
+| **Cloud Run** | Session engine (`YOUR_SERVICE_NAME`, `MODE=demo`) plus a separate OAuth token-renewal service |
 | **Cloud Scheduler** | Keep-alives, morning alert, and end-of-day. Validation jobs stay paused |
 | **Cloud Storage** | Ledgers, markers, optimizer objects, and `desk_public/` snapshots |
 | **Secret Manager** | OAuth and alert secrets — not in source |

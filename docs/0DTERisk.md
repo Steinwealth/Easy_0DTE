@@ -1,8 +1,8 @@
 # Easy 0DTE — Risk & Position Sizing
 
-**Serving now (Oct 30 2026):** RESEARCH Demo `easy-etrade-strategy-00619-xr6` · `MODE=demo` · `SINGLE_TP_ADMIT=true` · `TRADE_PROFILE_VERSION=wide` · sim ledger **$100,000** · 50 slots · `$600` sum. FINAL Live is **retired**. Slot, buffer, and the liquidity guard still run before the order. The strike they size is the Trade Profile pick: [0.OrderExecution.md](0.OrderExecution.md). Calendar: [MarketCalendar.md](MarketCalendar.md) — local skip gate matches Training Calendar (`Day Before …` does not double). **Local until `deploy now` (Nov 2):** Wide volume floor **0.012** all cells; empty two-sided chain hydrates live; pick hint keeps bid/ask size so Liquidity Guard is not `ask_size_missing` on a valid book.
+**Serving now (Oct 30 2026):** RESEARCH Demo `YOUR_SERVICE_NAME-00619-xr6` · `MODE=demo` · `SINGLE_TP_ADMIT=true` · `TRADE_PROFILE_VERSION=wide` · sim ledger **$100,000** · 50 slots · `$600` sum. FINAL Live is **retired**. Slot, buffer, and the liquidity guard still run before the order. The strike they size is the Trade Profile pick: [0.OrderExecution.md](0.OrderExecution.md). Calendar: [MarketCalendar.md](MarketCalendar.md) — local skip gate matches Training Calendar (`Day Before …` does not double). **Local until `deploy now` (Nov 2):** Wide volume floor **0.012** all cells; empty two-sided chain hydrates live; pick hint keeps bid/ask size so Liquidity Guard is not `ask_size_missing` on a valid book.
 
-> **Oct 13 2026 — Single Trade Profile admit path (**DEPLOYED** 10/13 3:08 PM PT in `easy-etrade-strategy-00599-lhd`: `SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide`, no `TRADE_PROFILE_SHADOW_VERSION`; the 10.5 JSON is loaded but not the admit; code default `false`).** RESEARCH only. With the flag off (rollback) the app runs exactly as before (legacy wide_collect / GATE_* stack). With the flag on, every signal runs:
+> **Oct 13 2026 — Single Trade Profile admit path (**DEPLOYED** 10/13 3:08 PM PT in `YOUR_SERVICE_NAME-00599-lhd`: `SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide`, no `TRADE_PROFILE_SHADOW_VERSION`; the 10.5 JSON is loaded but not the admit; code default `false`).** RESEARCH only. With the flag off (rollback) the app runs exactly as before (legacy wide_collect / GATE_* stack). With the flag on, every signal runs:
 >
 > 1. **Discovery Scan** (unchanged; 10 s, 24-symbol batches).
 > 2. **Must Execute** — feasibility only, never quality. In order: signal geometry (`orb_break`/`orb_range`/`regime`, `tl_break`, `bo_confirm`; ORB `PS`/`top_n` rank only) → cooldown / day-exclude → book-full precheck (`max_open_positions_reached`, no API, no cooldown) → **one** chain fetch via `chain_fetch_manager` → data readiness (`data_wait:<key>` holds the break; after `DIR_PCT_DEFER_MAX_WAIT_SEC` (90 s) it retires as `dir_pct_data_unavailable` / `data_unavailable:<key>`, no cooldown) → **Call / Put Skip Signals** (`GATE_call_ss` / `GATE_put_ss`, same evaluators and `QG_*_SS_*` levels, kept OUTSIDE the Trade Profile; CALL SS may early-out pre-chain on TL/BO and is not re-run; PUT SS runs at chain time) → `skip_signal:<call|put>` → **one shared contract pick** (premium 0.03–2.50, \|delta\| 0.18–0.42 (+tolerance), OTM ≤ 0.055 (Breakout 0.035), contract vol ≥ 50 / OI ≥ 100 when present, one spread rule: spread % of mid ≤ `0DTE_MAX_SPREAD_PCT_ORB1` 8 / `_BREAKOUT` 30 / `_TRENDLINE` 30 (Breakout has its own key) or ask−bid ≤ `0DTE_SPREAD_CHEAP_MAX_USD` ($0.01), re-checked at submit) → `contract_unavailable:<delta_out_of_band|otm|premium_low|premium_high|volume|oi|spread|no_quote>`.
@@ -17,10 +17,10 @@
 >
 > **TP Wide** (`trade_profile_wide.json`, built by `build_tp_wide.py`): per cell `call_share`/`put_share` > 0.10 (strict, same side); `break_distance_pct` ≤ 0.025 (ORB1, Breakout); **`equity_volume_ratio` ≥ 0.012 inclusive on all ten cells** (Nov 2 2026; was 0.12 on ORB1/Breakout). No spread line (picker only), no Skip-Signal lines (outside TP). Picker `no_quote` is bid or ask ≤ 0 on the cached chain (no two-sided book). Premium min remains **$0.03**. Empty book: live hydrate, then `data_wait:chain_quotes` if the cache is not a just-live fetch.
 >
-> **Rollback:** traffic to `easy-etrade-strategy-00598-tr4`, or `SINGLE_TP_ADMIT=false` (legacy stack is still in the image). Replays (Oct 13, JSON missing policy): single-TP flag-on 10.5 8/19–10/13 = **216 / 167W/49L / +$96,369.82**, row-for-row identical to the confirmed book (`docs/0.ProfitabilityThresholds/10.13/`); Total 4,395 / −$158,470.91. Wide parity on 10/13 decision records: 257/257.
+> **Rollback:** traffic to `YOUR_SERVICE_NAME-00598-tr4`, or `SINGLE_TP_ADMIT=false` (legacy stack is still in the image). Replays (Oct 13, JSON missing policy): single-TP flag-on 10.5 8/19–10/13 = **216 / 167W/49L / +$96,369.82**, row-for-row identical to the confirmed book (`docs/0.ProfitabilityThresholds/10.13/`); Total 4,395 / −$158,470.91. Wide parity on 10/13 decision records: 257/257.
 
 
-> **2026-10-13, first pinned in `easy-etrade-strategy-00599-lhd` (still the live admit/caps on `00611-9zz`).** Combined book, slot count and every path cap = **50**; `0DTE_MONITOR_MAX_SYMBOLS=50`. `0DTE_MAX_POSITION_SIZE_SUM=600` (since 10/9) binds every entry: 1/50 of 90% of the **$100,000** demo seed is $1,800. Book full is checked **first** (no API) in the TL / BO / ORB1 gate flows: reason `max_open_positions_reached` (open_n / cap), no chain pull, no dir%, no cooldown, capacity retry (§8.3). dir% missing data defers (90 s bounded wait, then the break is retired with no cooldown). Admit since 10/13 is `SINGLE_TP_ADMIT=true` / `TRADE_PROFILE_VERSION=wide`. (`QUALITY_GATE_ADMIT=wide_collect` + Trade Profile 10.5 observe-only was **10/9–10/13 only**.) FINAL Live Pilot (cap 7) is retired.
+> **2026-10-13, first pinned in `YOUR_SERVICE_NAME-00599-lhd` (still the live admit/caps on `00611-9zz`).** Combined book, slot count and every path cap = **50**; `0DTE_MONITOR_MAX_SYMBOLS=50`. `0DTE_MAX_POSITION_SIZE_SUM=600` (since 10/9) binds every entry: 1/50 of 90% of the **$100,000** demo seed is $1,800. Book full is checked **first** (no API) in the TL / BO / ORB1 gate flows: reason `max_open_positions_reached` (open_n / cap), no chain pull, no dir%, no cooldown, capacity retry (§8.3). dir% missing data defers (90 s bounded wait, then the break is retired with no cooldown). Admit since 10/13 is `SINGLE_TP_ADMIT=true` / `TRADE_PROFILE_VERSION=wide`. (`QUALITY_GATE_ADMIT=wide_collect` + Trade Profile 10.5 observe-only was **10/9–10/13 only**.) FINAL Live Pilot (cap 7) is retired.
 
 > **2026-09-28 (history; superseded by the 10/13 note above and the 10/9 $100k / $600 reseed).** **7** open positions. Sacred **10%** buffer, **90%** tradable, equal **1/7** slots. `0DTE_MAX_POSITION_SIZE_SUM=0` (no dollar sum cap). `LIVE_MAX_CONTRACTS_PER_TRADE=0`. Path caps and the combined book are **7**. Research demo seed **$5,000**.
 >
@@ -39,7 +39,7 @@
 
 | Layer | Role | Binds when |
 |-------|------|------------|
-| **Position Sizing Policy** (§5–§6) | How big **should** this trade be? Sacred **10%** buffer · trade **90%** of equity · **50** equal slots (live `easy-etrade-strategy-00611-9zz`; FINAL Live Pilot 7 retired) · **$600** dollar sum cap | Always — primary size for ORB / TL / BO. Each new open is min(1/N of tradable equity, $600); at $100k the $600 cap binds |
+| **Position Sizing Policy** (§5–§6) | How big **should** this trade be? Sacred **10%** buffer · trade **90%** of equity · **50** equal slots (live `YOUR_SERVICE_NAME-00611-9zz`; FINAL Live Pilot 7 retired) · **$600** dollar sum cap | Always — primary size for ORB / TL / BO. Each new open is min(1/N of tradable equity, $600); at $100k the $600 cap binds |
 | **Liquidity / ADV Guard** (§11 · [LiquidityGuard.md](LiquidityGuard.md)) | How big **can** fill safely vs this contract’s market? Ask-depth qty cap **off** · ADV 2.0% · no contract-count cap | Only when slot-sized qty would exceed market caps (`winning_governor` ≠ `slot_request`) |
 
 On a $5,000 book the buffer is $500 and each new open is about $643 (tradable $4,500 / 7). The 35% ceiling is $1,750 and does not bind.
@@ -154,11 +154,11 @@ If PP volume coverage is insufficient: **defer** 0DTE execute and **keep the que
 | **Trendline 0DTE** | Full |
 | **ORB SO (ETF)** | Referenced only where it **sets** `_red_day_filter_blocked` @ 7:30 |
 
-**Combined options book (one shared slot pool):** `TOTAL_0DTE_MAX_POSITIONS=50` in `configs/Account0DTE.env` (live `easy-etrade-strategy-00611-9zz`, first pinned 10/13 in `00599-lhd`; FINAL Live Pilot 7 retired). It equals `0DTE_SLOT_COUNT`. ORB1, ORB2, and Trendline each also cap at **50**. Pending reservations count toward the path. ORB2 rejects with `breakout_cap_reached`. Do not set `MAX_OPEN_POSITIONS` or `UNIFIED_0DTE_*_MAX_POSITIONS`. `MAX_TOTAL_OPTION_POSITIONS` is a fallback alias of TOTAL that `Shared.env` still sets (**50**); keep it equal to TOTAL.
+**Combined options book (one shared slot pool):** `TOTAL_0DTE_MAX_POSITIONS=50` in `configs/Account0DTE.env` (live `YOUR_SERVICE_NAME-00611-9zz`, first pinned 10/13 in `00599-lhd`; FINAL Live Pilot 7 retired). It equals `0DTE_SLOT_COUNT`. ORB1, ORB2, and Trendline each also cap at **50**. Pending reservations count toward the path. ORB2 rejects with `breakout_cap_reached`. Do not set `MAX_OPEN_POSITIONS` or `UNIFIED_0DTE_*_MAX_POSITIONS`. `MAX_TOTAL_OPTION_POSITIONS` is a fallback alias of TOTAL that `Shared.env` still sets (**50**); keep it equal to TOTAL.
 
 ### 0DTE position sizing & caps (one place to edit)
 
-Canonical source: **`configs/Account0DTE.env`**. Combined book is **one** count gate (`TOTAL_0DTE_MAX_POSITIONS=50`, live `easy-etrade-strategy-00611-9zz`, first pinned 10/13 in `00599-lhd`; FINAL Live Pilot 7 retired). `0DTE_SLOT_COUNT` must equal TOTAL so 1/N sizing matches available capital. Each path cap is also **50**.
+Canonical source: **`configs/Account0DTE.env`**. Combined book is **one** count gate (`TOTAL_0DTE_MAX_POSITIONS=50`, live `YOUR_SERVICE_NAME-00611-9zz`, first pinned 10/13 in `00599-lhd`; FINAL Live Pilot 7 retired). `0DTE_SLOT_COUNT` must equal TOTAL so 1/N sizing matches available capital. Each path cap is also **50**.
 
 | Cap | Value | Canonical key | File | Notes |
 |-----|------:|---------------|------|-------|
@@ -173,7 +173,7 @@ Canonical source: **`configs/Account0DTE.env`**. Combined book is **one** count 
 | **Total 0DTE** (ORB1 + ORB2 + Trendline) | **50** | `TOTAL_0DTE_MAX_POSITIONS` | `Account0DTE.env` | One combined-book variable |
 | Monitor symbol cap (post-fill) | **50** | `0DTE_MONITOR_MAX_SYMBOLS` | `Account0DTE.env` | Match combined book |
 
-The **50** values are live in `easy-etrade-strategy-00611-9zz` (first pinned 10/13 in `00599-lhd`); FINAL Live Pilot = 7 is retired. Demo seed `0DTE_DEMO_STARTING_BALANCE=100000` (10/9 reseed).
+The **50** values are live in `YOUR_SERVICE_NAME-00611-9zz` (first pinned 10/13 in `00599-lhd`); FINAL Live Pilot = 7 is retired. Demo seed `0DTE_DEMO_STARTING_BALANCE=100000` (10/9 reseed).
 
 Resolvers: `modules/unified_0dte_account.py` — `unified_0dte_slot_count()`, `orb_0dte_max_positions()`, `breakout_0dte_max_positions()`, `trendline_0dte_max_positions()`, `total_0dte_max_positions()`.
 
@@ -631,7 +631,7 @@ No env **`MAX_CONTRACTS`** — cheaper premium → more contracts within dollar 
 | Demo | `mock_options_executor.account_balance` (default **$5,000**, GCS-persisted) | `demo_account/mock_options_history.json` — rolling **400** closed trades (`MOCK_OPTIONS_LEDGER_MAX_CLOSED_TRADES`) |
 | Live | `cash_available_for_investment` → `account_value` → fallback **$5,000** | Broker + LIVE sibling `live_account/live_options_history.json` |
 
-**Live account:** `ETRADE_0DTE_ACCOUNT_ID=<see PrivateSecrets.md>` (ORB + Trendline shared).
+**Live account:** `ETRADE_0DTE_ACCOUNT_ID=<see operator private secrets (not in this repository)>` (ORB + Trendline shared).
 
 Demo ledger retention prunes **closed trades only**; balance, weekly/daily stats, and open positions are preserved. ORB fills attach `metadata.execution_payload` for execution-quality forensics — grep `EXECUTION_FILL_SUMMARY`.
 
@@ -886,7 +886,7 @@ grep "UNIFIED_0DTE_ACCOUNT | action=startup_day_pnl_sync"
 | `trendline_cap_reached` | `TRENDLINE_0DTE_MAX_POSITIONS` | **50** |
 | `max_open_positions_reached` | same caps, gate-flow precheck (`MAX_OPEN_POSITIONS_PRECHECK_ENABLED=true`) | open_n / cap / cap_kind |
 
-**10/13 (deployed `easy-etrade-strategy-00599-lhd`):** the cap is checked first (no API) in the TL / BO / ORB1 gate flows, counting open positions plus in-flight reservations. A full book is labelled `max_open_positions_reached` in the gate report, the reject log and the desk rejects. There is no chain pull, no dir% and no 1h cooldown. TL re-arms (exec-ready TTL still applies), BO and ORB1 hold the break. The executor cap codes above are now transient (retry, no cooldown); before, a TL post-executor `combined_cap_reached` retired the candidate. On 10/13, 88 of the 104 dir% "missing data" rejects happened with the book full.
+**10/13 (deployed `YOUR_SERVICE_NAME-00599-lhd`):** the cap is checked first (no API) in the TL / BO / ORB1 gate flows, counting open positions plus in-flight reservations. A full book is labelled `max_open_positions_reached` in the gate report, the reject log and the desk rejects. There is no chain pull, no dir% and no 1h cooldown. TL re-arms (exec-ready TTL still applies), BO and ORB1 hold the break. The executor cap codes above are now transient (retry, no cooldown); before, a TL post-executor `combined_cap_reached` retired the candidate. On 10/13, 88 of the 104 dir% "missing data" rejects happened with the book full.
 
 ### 8.4 Red Day tier bridge (`risk_path=red_day_tier_gate`)
 
@@ -1233,7 +1233,7 @@ Same caps in **demo sim** (`MODE=demo`) and **live broker** (`MODE=live`). Desk 
 | Group | Keys (defaults) | File |
 |-------|-----------------|------|
 | **Dollar sizing** | `0DTE_SLOT_COUNT=50` (local; live 7) · `0DTE_TRADING_CAPITAL_PCT=90` · `0DTE_MAX_POSITION_SIZE_PCT=35` · `0DTE_MAX_POSITION_SIZE_SUM=600` · `LIVE_MAX_CONTRACTS_PER_TRADE=0` · `0DTE_DEMO_STARTING_BALANCE=100000` | `Account0DTE.env` |
-| **Open position caps** | `ORB_0DTE_MAX_POSITIONS=50` · `BREAKOUT_0DTE_MAX_POSITIONS=50` · `TRENDLINE_0DTE_MAX_POSITIONS=50` · `TOTAL_0DTE_MAX_POSITIONS=50` (live `easy-etrade-strategy-00611-9zz`, first pinned 10/13 in `00599-lhd`; FINAL Live Pilot 7 retired) | `Account0DTE.env` |
+| **Open position caps** | `ORB_0DTE_MAX_POSITIONS=50` · `BREAKOUT_0DTE_MAX_POSITIONS=50` · `TRENDLINE_0DTE_MAX_POSITIONS=50` · `TOTAL_0DTE_MAX_POSITIONS=50` (live `YOUR_SERVICE_NAME-00611-9zz`, first pinned 10/13 in `00599-lhd`; FINAL Live Pilot 7 retired) | `Account0DTE.env` |
 | **Monitor symbol cap** | `0DTE_MONITOR_MAX_SYMBOLS=50` (local; live 7) | `Account0DTE.env` |
 | **Quote health kill switch** | `0DTE_DEGRADED_WARN_*` · `0DTE_DEGRADED_ENTRY_KILL_SWITCH_*` | `Account0DTE.env` |
 | **ORB 7:30 funnel** | `ORB_0DTE_PRIORITY_RANK_FINAL_BATCH_MAX=50` · `0DTE_RANK_SIZING_ENABLED=false` · optional `0DTE_RANK_MULT_*` | `ORB0DTE.env` |
@@ -1413,7 +1413,7 @@ grep OPTIONS_STEALTH_EXIT
 
 *Post-fill exits: [0DTEProfitCapture.md](0DTEProfitCapture.md). Three-path PP session replay & desk log: [PortfolioProtectionGuide.md](PortfolioProtectionGuide.md). ORB SO sizing: [SORisk.md](SORisk.md).*
 
-## Oct 13 2026 — Trendline global daily slot fast path (deployed `easy-etrade-strategy-00599-lhd`)
+## Oct 13 2026 — Trendline global daily slot fast path (deployed `YOUR_SERVICE_NAME-00599-lhd`)
 
 `_trendline_try_claim_global_daily_slot(symbol, local_open)` claims markers at `{ns}/{date_PT}/{mode}/slot_NN.txt` with create-if-absent semantics. The markers are released on close, fail, or EOD.
 
@@ -1429,10 +1429,10 @@ Restart recovery is unchanged:
 
 Setting the flag to `false`, or omitting `local_open`, restores the legacy 1..cap scan. Tests: `tests/test_trendline_global_slot_fast_path.py`, which includes a restart simulation.
 
-## Oct 13 2026 — TL slot claim after Trade Profile admit (SINGLE_TP_ADMIT, deployed `easy-etrade-strategy-00599-lhd`)
+## Oct 13 2026 — TL slot claim after Trade Profile admit (SINGLE_TP_ADMIT, deployed `YOUR_SERVICE_NAME-00599-lhd`)
 
 With `SINGLE_TP_ADMIT=true` the §8.5 order for Trendline becomes: dedupe → Red Day → caps precheck → Trade Profile admit → **buffer/cash + GCS slot as one step** (`modules/tl_slot_admit.py`) → `evaluate_intent` → sizing → Execution Risk Layer → broker. Sizing is unchanged (§5.3: entry_budget = min(1/N tradable capped at $600, cash − buffer)) except that in-flight TL holds (claimed, not yet filled) are subtracted from available cash. Rejected signals use no GCS ops and hold no cash. Flag off: unchanged. Deviation flagged: the TL-local hold overlaps UAR pending reservations (§8.6); UAR's pending total is not yet read by the TL sizing snapshot.
 
-## Oct 13 2026 — canonical spread rule (SINGLE_TP_ADMIT, deployed `easy-etrade-strategy-00599-lhd`)
+## Oct 13 2026 — canonical spread rule (SINGLE_TP_ADMIT, deployed `YOUR_SERVICE_NAME-00599-lhd`)
 
 Flag off (rollback; live through `00598`): ORB1 8 % (opening selector classes 9/10/12, hard 20), Trendline **and Breakout** 30 % (`TRENDLINE_OPTION_MAX_SPREAD_PCT=0.30`; BO reuses the TL executor), QG `spread` gate skips at admit (no contract yet). Flag on: one rule, per path — spread % of mid ≤ ORB1 **8** / Breakout **30** / Trendline **30** (`0DTE_MAX_SPREAD_PCT_ORB1` / `_BREAKOUT` / `_TRENDLINE`; Breakout now has its own explicit key instead of inheriting the TL cap; ORB1 opening-class 9/10/12 variants retired to 8) **or** ask−bid ≤ `0DTE_SPREAD_CHEAP_MAX_USD` (default $0.01), applied in the shared picker and re-checked at submit. Exit-grade spread (`OPTION_STEALTH_EXIT_GRADE_MAX_SPREAD_PCT`), `EXEC_LAST_LOOK_MAX_SPREAD_PCT`, Hard Gate 5 % and Skip-Signal chain-spread stamps are out of scope and unchanged. Review: `session_monitor/spread_1013/SPREAD_REVIEW.md`.

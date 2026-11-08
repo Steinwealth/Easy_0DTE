@@ -1,7 +1,7 @@
 # Process Flow — Easy 0DTE Strategy
 
 **Last updated:** November 6, 2026 (local runtime pack not on serving: this-tick bid pret + HOLD, leftover OCC skip while owned, discovery scan vs watch, notification-only Telegram) · November 5, 2026 (serving `00625-wwv`: sequential OCC inner batches + UL lane yield, reusable-gated OCC defer, eval JSONL engine/qty/fee keys)  
-**Serving:** `easy-etrade-strategy-00625-wwv` · `MODE=demo` · 100% traffic (local Nov 6 pack not on this revision)  
+**Serving:** `YOUR_SERVICE_NAME-00625-wwv` · `MODE=demo` · 100% traffic (local Nov 6 pack not on this revision)  
 **Rollback of this serving image:** `00624-8bn`.  
 **Admit:** Trade Profile Wide (`SINGLE_TP_ADMIT=true`, `TRADE_PROFILE_VERSION=wide`)  
 **Book:** $100,000 sim · 50 slots · $600 sum cap · seed flag off  
@@ -185,7 +185,7 @@ Paused with the old morning:
 | validation-candle-700 | 07:00 | Paused |
 | prefetch-validation-715 | 07:15 | Paused |
 
-Project and job commands: [CloudSecrets.md](CloudSecrets.md). Keep-alive HTTP is a wake ping.
+Project and job commands: operator cloud inventory (not in this repository). Keep-alive HTTP is a wake ping.
 
 ---
 

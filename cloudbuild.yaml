@@ -3,7 +3,7 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     id: build-trading
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/easy-etrade-strategy:latest', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/YOUR_SERVICE_NAME:latest', '.']
 
   - name: 'gcr.io/cloud-builders/gcloud'
     id: gcr-image-cleanup
@@ -12,7 +12,7 @@ steps:
     waitFor: ['build-trading']
 
 images:
-  - 'gcr.io/$PROJECT_ID/easy-etrade-strategy:latest'
+  - 'gcr.io/$PROJECT_ID/YOUR_SERVICE_NAME:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY

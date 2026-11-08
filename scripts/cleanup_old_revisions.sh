@@ -2,7 +2,7 @@
 # ======================================================
 # Cloud Run Revision Cleanup Script
 # Cleans up old Cloud Run revisions while keeping recent ones
-# Project: easy-etrade-strategy
+# Project: YOUR_GCP_PROJECT_ID
 # Rev 00259: Revision cleanup automation
 # ======================================================
 
@@ -15,7 +15,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Project configuration
-PROJECT_ID="easy-etrade-strategy"
+PROJECT_ID="YOUR_GCP_PROJECT_ID"
 REGION="us-central1"
 
 # Retention settings (Jul 2026: 3 per service — RESEARCH + FINAL trading + OAuth + Collector)
@@ -88,7 +88,7 @@ cleanup_service_revisions() {
 echo "=========================================="
 echo "Cleaning up Easy ORB Strategy revisions"
 echo "=========================================="
-cleanup_service_revisions "easy-etrade-strategy"
+cleanup_service_revisions "YOUR_SERVICE_NAME"
 
 echo "=========================================="
 echo "Cleaning up Easy Collector revisions"
@@ -98,12 +98,12 @@ cleanup_service_revisions "easy-collector"
 echo "=========================================="
 echo "Cleaning up Easy OAuth revisions"
 echo "=========================================="
-cleanup_service_revisions "easy-etrade-strategy-oauth"
+cleanup_service_revisions "YOUR_SERVICE_NAME-oauth"
 
 echo "=========================================="
 echo "Cleaning up FINAL app (LIVE service) revisions"
 echo "=========================================="
-cleanup_service_revisions "easy-etrade-strategy-live"
+cleanup_service_revisions "YOUR_SERVICE_NAME-live"
 
 echo -e "${GREEN}✅ Revision cleanup complete!${NC}"
 echo ""
