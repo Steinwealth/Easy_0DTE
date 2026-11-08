@@ -223,15 +223,15 @@ Guides: [docs/PositionMonitoring.md](docs/PositionMonitoring.md) · [docs/Data.m
 
 ## 9. Training data and the Training Calendar
 
+![Easy 0DTE feature snapshots, premium path recording, and replay](docs/images/feature-snapshot-replay-architecture.webp)
+
+*Priority Optimizer event snapshots (execute, handoff, 120s, 20% MFE, exit) and Profit Optimizer premium / underlying time-series persist to GCS for in-sample replay. The chart’s “2s monitor” is the scheduler target; JSONL persist is a 5s minimum gap. Yahoo 1-minute bars timestamp Trendline structure. Replay is not live trading P&L.*
+
 ![Easy 0DTE Training Calendar — Trade Profile 10.23 in-sample replay](docs/images/training-calendar.webp)
 
 *Firebase Training Calendar (September 2026 view). Header is Trade Profile **10.23** in-sample replay: 8/19–11/6 **542 · 436W/106L · +$159,400.39**. September tile **+$73,075.59** (21 green / 0 red). Pre trained streak **0/11**. These figures are not the running Demo ledger. The market-data lifecycle diagram is in the [README](README.md#data-engineering).*
 
 Wide is on so the book keeps producing accepts. Those accepts, the rejects, and the premium path of each open are the corpus for 10.23.
-
-![Easy 0DTE feature snapshots, premium path recording, and replay](docs/images/feature-snapshot-replay-architecture.webp)
-
-*Priority Optimizer event snapshots (execute, handoff, 120s, 20% MFE, exit) and Profit Optimizer premium / underlying time-series persist to GCS for in-sample replay. The chart’s “2s monitor” is the scheduler target; JSONL persist is a 5s minimum gap. Yahoo 1-minute bars timestamp Trendline structure. Replay is not live trading P&L.*
 
 Priority Optimizer snapshots are written off the exit check, from cache already on the tick: closed-minute session tech, the handoff freeze on the executed row, live OCC age on `first_red`, greeks restamped from that quote, chain volumes nulled when older than 60s. Flatten primes remaining opens once; persist after that is cache-only. The first body written for an object name is kept.
 
