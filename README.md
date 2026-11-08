@@ -10,7 +10,7 @@ I designed and built Easy 0DTE as an independent engineering project: session or
 
 ## Application preview
 
-[Open the Demo desk →](https://easy-0dte.web.app)
+<a href="https://easy-0dte.web.app" target="_blank" rel="noopener noreferrer">Open the Demo desk →</a>
 
 ![Easy 0DTE operator desk on Firebase Hosting](docs/images/desk-hero.webp)
 
