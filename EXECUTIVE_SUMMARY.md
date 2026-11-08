@@ -9,9 +9,9 @@ This file is the product specification. Path geometry, admit structure, order ro
 
 **Contents:** [What this app is](#1-what-this-app-is) · [Session](#3-the-session) · [Discovery](#4-discovery) · [Admit](#5-admit-trade-profile-wide-training-toward-1023) · [Orders](#6-order-execution) · [Risk](#7-risk-and-sizing) · [Monitor](#8-monitoring-and-profit-capture) · [Training](#9-training-data-and-the-training-calendar) · [Desk](#10-alerts-and-the-desk) · [Cloud](#11-cloud)
 
-![Easy 0DTE trading platform workflow from market data through Profit Capture](docs/images/trading-platform-workflow.webp)
+![Easy 0DTE automated trading system architecture](docs/images/trading-system-architecture.webp)
 
-*Application process covered in §1–§8: market data → discovery → Trade Profile qualification → order execution → open book → position monitoring → Profit Capture. Session clocks are US Pacific. Sample quotes, the bid/ask ladder, and the 12/50 open-book P&L in the graphic are illustrative — not Demo ledger or 10.23 research. Serving admit is **Wide**; Live submit is off. The 2s / 3s monitor interval is the scheduler target. Booked settlement is fee-inclusive.*
+*System pipeline: E\*TRADE market data and exact OCC chains, Yahoo 1-minute Trendline timestamps, 24/10s discovery, ORB and Trendline paths, Trade Profile, Demo fill or Live submit, unified monitor, PATH_V2 Profit Capture, GCS research store, and Firebase operator desk. Serving admit is **Wide**; Live submit is off. Evaluate ~2s is the scheduler target, not guaranteed saved-tape cadence.*
 
 ---
 
@@ -90,6 +90,10 @@ Calendar gate (skip or trade)
   → monitor ~2s (3s at ≥20 opens) → PATH_V2
   → flatten leftovers 12:50 → EOD 12:55
 ```
+
+![Easy 0DTE trading platform workflow from market data through Profit Capture](docs/images/trading-platform-workflow.webp)
+
+*Application process covered in §1–§8: market data → discovery → Trade Profile qualification → order execution → open book → position monitoring → Profit Capture. Session clocks are US Pacific. Sample quotes, the bid/ask ladder, and the 12/50 open-book P&L in the graphic are illustrative — not Demo ledger or 10.23 research. Serving admit is **Wide**; Live submit is off. The 2s / 3s monitor interval is the scheduler target. Booked settlement is fee-inclusive.*
 
 Discovery is the next **24** names every **10s**. The cursor always advances. A running watch must not occupy the scan slot (`unified_discovery_scan_slot_free`). The task yields up to **0.8s** for the exit monitor, quotes those 24 names, yields up to **0.5s**, then ORB1, Trendline, and ORB2 compare that quote to the line. A slow exit quote does not skip the break check. The scan quote stays the decision quote for **2 minutes** (`TP_FREEZE_QUOTE_MAX_AGE_SEC` default 120). Yahoo bar load and open-position path-chain stamps run after the order.
 
