@@ -131,6 +131,10 @@ Wide is the collection profile. The working research profile is **10.23** (`easy
 
 Wide rules, in short: same-side `call_share` or `put_share` above 0.10; `break_distance_pct` at most 0.025 on ORB1 and ORB2; `equity_volume_ratio` at least **0.012** on every path. A missing key passes, except `equity_volume_ratio` (reject) and the share key (defer). `TRENDLINE_MAX_ENTRY_DISTANCE_PCT` at 5% is a score bonus only.
 
+![Easy 0DTE Trade Profile 10.23 CALL and PUT 27-key templates](docs/images/trade-profile-call-put-templates.webp)
+
+*10.23 layout: 27 keys, five groups (9 / 4 / 5 / 6 / 3), separate CALL and PUT templates, accept or reject. Per-cell bounds are not shown. Serving admit remains **Wide**. The official snake_case key names and CALL vs PUT order are the lists immediately below — use those lists, not the display labels in the graphic, as the template contract.*
+
 ### 27-key CALL and PUT templates
 
 10.23 is a flat **10 cells × 27 keys** profile (`flat-27-key-cells-v2`): ORB1, TL0, TL1, TL2+, Breakout (ORB2) × CALL, PUT. Each cell uses this official template order (approved 17 October 2026). A key is a min, a max, a min–max range, or **PASS**. Listing a key does not activate a bound. `call_share` / `put_share` are derived from stamped chain volumes. PUT `delta` is `abs(delta)`. `dir_pct_change_5m` stays on the template and is not a 10.23 gate.
