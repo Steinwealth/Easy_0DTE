@@ -18,6 +18,10 @@ I designed and built Easy 0DTE as an independent engineering project: session or
 
 The dashboard is a read-only Firebase site. Cloud Run writes public snapshot objects; the desk polls them. It does not place orders or invent P&L.
 
+![Easy 0DTE automated trading system architecture](docs/images/trading-system-architecture.webp)
+
+*System pipeline: E\*TRADE market data and exact OCC chains, Yahoo 1-minute Trendline timestamps, 24/10s discovery, ORB and Trendline paths, Trade Profile, Demo fill or Live submit, unified monitor, PATH_V2 Profit Capture, GCS research store, and Firebase operator desk. Serving admit is **Wide**; Live submit is off. Evaluate ~2s is the scheduler target, not guaranteed saved-tape cadence.*
+
 ---
 
 ## What I built
