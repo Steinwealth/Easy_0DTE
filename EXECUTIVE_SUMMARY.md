@@ -225,6 +225,10 @@ Guides: [docs/PositionMonitoring.md](docs/PositionMonitoring.md) · [docs/Data.m
 
 Wide is on so the book keeps producing accepts. Those accepts, the rejects, and the premium path of each open are the corpus for 10.23.
 
+![Easy 0DTE feature snapshots, premium path recording, and replay](docs/images/feature-snapshot-replay-architecture.webp)
+
+*Priority Optimizer event snapshots (execute, handoff, 120s, 20% MFE, exit) and Profit Optimizer premium / underlying time-series persist to GCS for in-sample replay. The chart’s “2s monitor” is the scheduler target; JSONL persist is a 5s minimum gap. Yahoo 1-minute bars timestamp Trendline structure. Replay is not live trading P&L.*
+
 Priority Optimizer snapshots are written off the exit check, from cache already on the tick: closed-minute session tech, the handoff freeze on the executed row, live OCC age on `first_red`, greeks restamped from that quote, chain volumes nulled when older than 60s. Flatten primes remaining opens once; persist after that is cache-only. The first body written for an object name is kept.
 
 Profit Optimizer records the premium path (compact JSONL, 5s min gap). New rows keep `path_v2_peak` / `path_pret` / `path_v2_reason`, quote clocks, contracts, and modeled fees. Replay uses `eval_now`. `PATH_END` is end-of-tape HOLD, not a live exit.
